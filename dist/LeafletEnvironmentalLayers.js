@@ -25970,15 +25970,18 @@ L.LayerGroup.environmentalLayers = L.LayerGroup.extend(
 	           }
 
 	           if(this.options.embed) {
-	           		this.overlayMaps[layer].addTo(map);
+					this.overlayMaps[layer].addTo(map);	
 	           }
 
-	       }
-
+		   }
+		   	if(this.options.embed) {
+				L.control.embed().addTo(map);	
+	   	   	}
+		   
            L.control.layers(baseMaps,this.overlayMaps).addTo(map);
 
 		   if(this.options.hash)
-		     var hash = new L.Hash(map, this.overlayMaps);
+			   var hash = new L.FullHash(map,this.overlayMaps);	 
 		          
         },
 
@@ -27186,7 +27189,7 @@ require('./indigenousLayers.js');
 require('./layercode.js')
 require('./eonetFiresLayer')
 require('./AllLayers.js') ;
-},{"./AllLayers.js":8,"./aqicnLayer.js":9,"./eonetFiresLayer":10,"./fracTrackerMobileLayer.js":11,"./indigenousLayers.js":12,"./layercode.js":14,"./openWeatherMapLayer.js":16,"./osmLandfillMineQuarryLayer.js":17,"./pfasLayer.js":18,"./purpleLayer.js":19,"./toxicReleaseLayer.js":20,"./unearthing.js":21,"./wisconsinLayer.js":26,"jquery":2,"leaflet":6,"leaflet-providers":5}],16:[function(require,module,exports){
+},{"./AllLayers.js":8,"./aqicnLayer.js":9,"./eonetFiresLayer":10,"./fracTrackerMobileLayer.js":11,"./indigenousLayers.js":12,"./layercode.js":14,"./openWeatherMapLayer.js":16,"./osmLandfillMineQuarryLayer.js":17,"./pfasLayer.js":18,"./purpleLayer.js":19,"./toxicReleaseLayer.js":20,"./unearthing.js":21,"./wisconsinLayer.js":27,"jquery":2,"leaflet":6,"leaflet-providers":5}],16:[function(require,module,exports){
 L.OWM = L.TileLayer.extend({
 	options: {
 		appId: '4c6704566155a7d0d5d2f107c5156d6e', /* pass your own AppId as parameter when creating the layer. Get your own AppId at https://www.openweathermap.org/appid */
@@ -29424,6 +29427,56 @@ L.layerGroup.Unearthing = function (options) {
 };
 
 },{}],22:[function(require,module,exports){
+L.Control.Embed = L.Control.extend({
+
+    options: {
+        position: 'topleft',
+    },
+
+    initialize: function(options) {
+        L.Util.setOptions(this, options);
+        this._embedElement = L.DomUtil.create('div');
+        this._embedElement.classList.add('leaflet-control-embed', 'leaflet-bar', 'leaflet-control')
+        this._embedAnchorElement = L.DomUtil.create('a');
+        this._embedAnchorElement.classList.add('leaflet-control-embed-link');
+        this._embedAnchorElement.setAttribute('href', '#');
+        this._embedAnchorElement.setAttribute('onclick', 'return false'); // To prevent the removal of url hash
+        this._embedAnchorElement.setAttribute('title', 'embed');
+        this._embedAnchorElement.setAttribute('role', 'button');
+        this._embedAnchorElement.setAttribute('aria-labelledby', 'embed');
+        this._embedElement.appendChild(this._embedAnchorElement);
+        this._embedIconElement = L.DomUtil.create('i', 'fas fa-code');
+        this._embedAnchorElement.appendChild(this._embedIconElement);
+        this.onClick();
+    },
+
+    onAdd: function(map) {
+        return this._embedElement;
+    },
+
+    onClick: function() {
+        var self = this;
+        L.DomEvent.on(this._embedElement, 'click', function(ev) {
+            prompt('Use this HTML code to embed this map on another site.', self.generateCode());
+        })
+    },
+
+    generateCode: function() {
+        var currentHash = window.location.hash;
+        var path = window.location.pathname;
+        var code = '<iframe style="border:none;" width="100%" height="900px" src="//publiclab.github.io/leaflet-environmental-layers' + path + currentHash +'"></iframe>';
+        return code;
+    },
+
+    onRemove: function(map) {}
+
+})
+
+L.control.embed = function(options) {
+    return new L.Control.Embed(options);
+}
+
+},{}],23:[function(require,module,exports){
 L.Control.Layers.include({
   getActiveOverlayNames: function() {
     
@@ -29440,7 +29493,7 @@ L.Control.Layers.include({
     return layers;
   }
 });
-},{}],23:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 L.SpreadsheetLayer = L.LayerGroup.extend({
     //options: {
         //Must be supplied:
@@ -29606,7 +29659,7 @@ L.SpreadsheetLayer = L.LayerGroup.extend({
 L.spreadsheetLayer = function(options) {
     return new L.SpreadsheetLayer(options);
 };
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 L.Control.LegendControl = L.Control.extend({
   options: {
     position: 'bottomleft',
@@ -29665,7 +29718,7 @@ L.control.legendControl = function(options) {
   return new L.Control.LegendControl(options);
 };
 
-},{}],25:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 omsUtil = function (map, options) {
     var oms = new OverlappingMarkerSpiderfier(map, options);
 
@@ -29681,7 +29734,7 @@ omsUtil = function (map, options) {
 
     return oms;
 }
-},{}],26:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 wisconsinLayer = function (map) {
    var info = require("./info.json");
 
@@ -29714,4 +29767,4 @@ wisconsinLayer = function (map) {
    return Wisconsin_NM ;
 };
 
-},{"./info.json":13}]},{},[3,7,15,22,23,24,25]);
+},{"./info.json":13}]},{},[3,7,15,22,23,24,25,26]);
