@@ -25853,7 +25853,8 @@ L.LayerGroup.environmentalLayers = L.LayerGroup.extend(
     {
         options: {
         	hash: false,
-        	embed: false, // activates layers on map by default if true.
+			embed: false, // activates layers on map by default if true.
+			currentHash: location.hash,
         	 // Source of Truth of Layers name .
         	 // please put name of Layers carefully in the the appropriate layer group.
 		    layers0: ["purpleLayer","toxicReleaseLayer","pfasLayer","aqicnLayer","osmLandfillMineQuarryLayer", "Unearthing"],
@@ -25970,7 +25971,7 @@ L.LayerGroup.environmentalLayers = L.LayerGroup.extend(
 	           }
 
 	           if(this.options.embed) {
-					this.overlayMaps[layer].addTo(map);	
+					// this.overlayMaps[layer].addTo(map);	
 	           }
 
 		   }
@@ -25981,7 +25982,15 @@ L.LayerGroup.environmentalLayers = L.LayerGroup.extend(
            L.control.layers(baseMaps,this.overlayMaps).addTo(map);
 
 		   if(this.options.hash)
-			   var hash = new L.FullHash(map,this.overlayMaps);	 
+			   var hash = new L.FullHash(map,this.overlayMaps);
+				// Parse map data from location hash
+				var parsed = hash.parseHash(this.options.currentHash);
+				var layers = parsed.layers;
+				// Set map state from parsed hash
+				map.setView(parsed.center, parsed.zoom);
+				layers.forEach(function(layer) {
+					if(hash.options[layer] && !map.hasLayer(hash.options[layer])) map.addLayer(hash.options[layer])
+			 	});
 		          
         },
 
