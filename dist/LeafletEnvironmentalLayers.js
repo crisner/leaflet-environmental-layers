@@ -25888,9 +25888,9 @@ L.LayerGroup.environmentalLayers = L.LayerGroup.extend(
       if (!!param.hash) {
         this.options.hash = param.hash;
       }
-      if(!!param.baseLayers) {
-				this.options.baseLayers = param.baseLayers;
-			}
+      if (!!param.baseLayers) {
+        this.options.baseLayers = param.baseLayers;
+      }
       param.all = [...this.options.layers0, ...this.options.layers1, ...this.options.layers2, ...this.options.layers3, ...this.options.layers4, ...this.options.layers5, ...this.options.layers6];
       if (!param.include || !param.include.length) {
         param.include = param.all;
@@ -25905,6 +25905,9 @@ L.LayerGroup.environmentalLayers = L.LayerGroup.extend(
 
       if (!!param.embed) {
         this.options.embed = param.embed;
+      }
+      if (!!param.hostname) {
+        this.options.hostname = param.hostname;
       }
     },
 
@@ -25961,18 +25964,22 @@ L.LayerGroup.environmentalLayers = L.LayerGroup.extend(
         }
       }
 
-      if(this.options.embed) {
-				L.control.embed().addTo(map);	
+      if (this.options.embed) {
+        this.options.hostname ? (
+          L.control.embed({
+            hostname: this.options.hostname,
+          }).addTo(map)
+        ) : L.control.embed().addTo(map);
       }
-		   
-      L.control.layers(baseMaps,this.overlayMaps).addTo(map);
+
+      L.control.layers(baseMaps, this.overlayMaps).addTo(map);
 
       var allMaps = Object.assign(baseMaps, this.overlayMaps);
-      if(this.options.hash) {
-        var hash = new L.FullHash(map,allMaps);
+      if (this.options.hash) {
+        var hash = new L.FullHash(map, allMaps);
         // Update map state from hash
         hash.update(this.options.currentHash);
-      }    
+      }
     },
 
     onRemove: function(map) {},
@@ -26588,6 +26595,374 @@ module.exports={
 }
 
 },{}],14:[function(require,module,exports){
+module.exports={
+  "airQualityIndex": {
+    "url": "http://aqicn.org/json-api/doc/",
+    "data": {
+      "type": "RT",
+      "disclaimer": "Data consistency is verified, in real-time, with the neighbor stations, allowing to automatically detect defective monitoring stations, and remove them, if needed, from the map."
+    },
+    "description": "The World Air Quality Index project provides transparent and world-wide air quality information for more than 100 countries, covering more than 12,000 stations in 1000 major cities.",
+    "layer_desc": "World-wide air quality information",
+    "icon": "#096",
+    "extents": {
+      "bounds": [
+                  [-44.087585028245165, -148.88671875000003],
+                  [76.63922560965888, 140.62500000000003]
+                ],
+      "minZoom": 3,
+      "maxZoom": 15
+    }
+  },
+  "eonetFires": {
+    "url": "https://eonet.sci.gsfc.nasa.gov/",
+    "data": {
+      "type": "NRT",
+      "disclaimer": "Spatial and temporal extents of natural events represented in EONET are based on multiple sources, and often these representations are approximations at best."
+    },
+    "description": "EONET provides a curated source of continuously updated natural event metadata. EONET Events: Wildfires: Wildfires includes all nature of fire, including forest and plains fires, as well as urban and industrial fire events. Fires may be naturally caused or manmade.",
+    "layer_desc": "All nature of fire events.",
+    "icon": "#ff421d",
+    "extents": {
+      "bounds": [
+                  [-44.087585028245165, -148.88671875000003],
+                  [76.63922560965888, 140.62500000000003]
+                ],
+      "minZoom": 3,
+      "maxZoom": 15
+    }
+  },
+  "fractracker": {
+    "url": "https://www.fractracker.org/",
+    "data": {
+      "type": "",
+      "disclaimer": "Data from agency data sets to crowd-sourced data"
+    },
+    "description": "FracTracker Alliance studies, maps, and communicates the risks of oil and gas development to protect our planet and support the renewable energy transformation.",
+    "layer_desc": "Oil and gas development",
+    "icon": "#e8e800",
+    "extents": {
+      "bounds": [
+                  [-44.087585028245165, -148.88671875000003],
+                  [76.63922560965888, 140.62500000000003]
+                ],
+      "minZoom": 5,
+      "maxZoom": 15
+    }
+  },
+  "fracTrackerMobile": {
+    "url": "https://services.arcgis.com/jDGuO8tYggdCCnUJ/arcgis/rest/services/FracTrackerMobileAppNPCAMesaVerdeNationalPark_051416/FeatureServer",
+    "data": {
+      "type": "",
+      "disclaimer": "Data from agency data sets to crowd-sourced data"
+    },
+    "description": "FracTracker used the mobile app to help volunteers document the rich biodiversity in and near Mesa Verde",
+    "layer_desc": "User reports in NPCA-Mesa Verde National Park",
+    "icon": "#e4458b",
+    "extents": {
+      "bounds": [
+                  [51.536085601784755, -59.98535156250001],
+                  [27.800209937418252, -123.26660156250001]
+                ],
+      "minZoom": 5,
+      "maxZoom": 15
+    }
+  },
+  "indigenousLands": {
+    "url": "https://native-land.ca/",
+    "data": {
+      "type": "Historical data",
+      "disclaimer": "This map does not represent or intend to represent official or legal boundaries of any Indigenous nations. To learn about definitive boundaries, contact the nations in question. Map sources: https://native-land.ca/resources/"
+    },
+    "description": "Native Land is a conglomeration of things: nations that still exist, nations that we only have records of for “first contact”, nations that have moved over time, and more.",
+    "layer_desc": "Indigenous nations - Territories, Languages, Treaties",
+    "icon": "#532200",
+    "extents": {
+      "bounds": [
+                  [-44.087585028245165, -148.88671875000003],
+                  [76.63922560965888, 140.62500000000003]
+                ],
+      "minZoom": 6,
+      "maxZoom": 15
+    }
+  },
+  "justiceMap": {
+    "url": "http://www.justicemap.org/index.php?giAdvanced=0#instruction_div",
+    "data": {
+      "type": "",
+      "disclaimer": "Our information comes from the Census Bureau - the 2010 Census and the latest American Community Survey (five year summary)."
+    },
+    "description": "Visualize race and income data for your neighborhood, county, state, or the entire US",
+    "layer_desc": "U.S race and income data",
+    "icon": "#f3a482",
+    "extents": {
+      "bounds": [
+                  [16.97274101999902, -172.880859375],
+                  [71.27259471233448, -38.05664062500001]
+                ],
+      "minZoom": 5,
+      "maxZoom": 15
+    }
+  },
+  "luftdaten": {
+    "url": "https://maps.luftdaten.info",
+    "data": {
+      "type": "",
+      "disclaimer": "At the moment we are developing a standard that will complement the official measurement results of LUBW. With our work we want to obtain a well-founded, empirically determined data set. It is primarily a picture of the overall situation. However, cooperation with various experts aims to achieve the greatest possible approximation of measurement results that are recorded using other measurement methods."
+    },
+    "description": "building particulate matter sensors and visualizing the data in an overall picture.",
+    "layer_desc": "Fine dust measurement",
+    "icon": "#4edd51",
+    "extents": {
+      "bounds": [
+                  [-44.087585028245165, -148.88671875000003],
+                  [76.63922560965888, 140.62500000000003]
+                ],
+      "minZoom": 3,
+      "maxZoom": 15
+    }
+  },
+  "mapknitter": {
+    "url": "https://mapknitter.org/",
+    "data": {
+      "type": "community submissions",
+      "disclaimer": "Data from community submissions."
+    },
+    "description": "MapKnitter can make maps from any image source, but it was designed for making maps with aerial photos from balloons and kites.",
+    "layer_desc": "Map data from aerial photos from balloons and kites",
+    "icon": "#ca283b",
+    "extents": {
+      "bounds": [
+                  [-44.087585028245165, -148.88671875000003],
+                  [76.63922560965888, 140.62500000000003]
+                ],
+      "minZoom": 10,
+      "maxZoom": 15
+    }
+  },
+  "odorreport": {
+    "url": "https://odorlog.ushahidi.io/views/map",
+    "report_url": "http://www.odorcomplaint.com/",
+    "data": {
+      "type": "",
+      "disclaimer": "Data based on the the <a href=\"http://www.odorcomplaint.com/\">Odor Complaint Form</a> plus a couple of logs found online"
+    },
+    "description": "Facilitates monitoring of bad odor events through the collection of data using a written odor log and an online map.",
+    "layer_desc": "Bad odor events",
+    "icon": "#ff00ff",
+    "extents": {
+      "bounds": [
+                  [-44.087585028245165, -148.88671875000003],
+                  [76.63922560965888, 140.62500000000003]
+                ],
+      "minZoom": 8,
+      "maxZoom": 15
+    }
+  },
+  "openaq": {
+    "url": "https://openaq.org/",
+    "data": {
+      "type": "RT",
+      "disclaimer": "OpenAQ-aggregate data are gathered in real-time from government agencies and no guarantees can be made for their accuracy. All quality control measures should be done by the user or by contacting the host source."
+    },
+    "description": "OpenAQ is a non-profit organization empowering communities around the globe to clean their air by harmonizing, sharing, and using open air quality data.",
+    "layer_desc": "Air quality data",
+    "icon": "#912d25",
+    "extents": {
+      "bounds": [
+                  [-44.087585028245165, -148.88671875000003],
+                  [76.63922560965888, 140.62500000000003]
+                ],
+      "minZoom": 3,
+      "maxZoom": 15
+    }
+  },
+  "openInfraMap": {
+    "url": "https://openinframap.org/about.html",
+    "data": {
+      "type": "",
+      "disclaimer": "All the data currently displayed on OpenInfraMap is sourced directly from OpenStreetMap."
+    },
+    "description": "Open Infrastructure Map is a view of the world's hidden infrastructure mapped in the OpenStreetMap database.",
+    "layer_desc": "World's hidden infrastructure",
+    "icon": "#b59f10",
+    "extents": {
+      "bounds": [
+                  [-44.087585028245165, -148.88671875000003],
+                  [76.63922560965888, 140.62500000000003]
+                ],
+      "minZoom": 3,
+      "maxZoom": 15
+    }
+  },
+  "opensense": {
+    "url": "https://opensensemap.org/",
+    "report_url": "https://opensensemap.org/register",
+    "data": {
+      "type": "",
+      "disclaimer": "Data collected from senseBoxes"
+    },
+    "description": "openSenseMap is a platform for open sensor data at which everyone can participate in.",
+    "layer_desc": "Sensor data from senseboxes",
+    "icon": "",
+    "extents": {
+      "bounds": [
+                  [-44.087585028245165, -148.88671875000003],
+                  [76.63922560965888, 140.62500000000003]
+                ],
+      "minZoom": 3,
+      "maxZoom": 15
+    }
+  },
+  "openWeatherMap": {
+    "url": "https://openweathermap.org/guide",
+    "data": {
+      "type": "RT",
+      "disclaimer": "data from professional and private weather stations"
+    },
+    "description": "OpenWeatherMap provides many kinds of weather maps including Precipitation, Clouds, Pressure, Temperature, Wind.",
+    "layer_desc": "Weather information",
+    "icon": "#00a3fe",
+    "extents": {
+      "bounds": [
+                  [-44.087585028245165, -148.88671875000003],
+                  [76.63922560965888, 140.62500000000003]
+                ],
+      "minZoom": 3,
+      "maxZoom": 15
+    }
+  },
+  "osmlandfills,quarries": {
+    "url": "https://www.openstreetmap.org/about",
+    "data": {
+      "type": "",
+      "disclaimer": "OpenStreetMap emphasizes local knowledge. Contributors use aerial imagery, GPS devices, and low-tech field maps to verify that OSM is accurate and up to date. Our contributors include enthusiast mappers, GIS professionals, engineers running the OSM servers, humanitarians mapping disaster-affected areas, and many more."
+    },
+    "description": "A Landfill site (also known as a tip, dump, rubbish dump or dumping ground and historically as a midden) is a site for the disposal of waste materials by burial. A quarry is an area of land used for surface extraction (open-pit mining) of mineral or organic resources like rocks, gravel, sand, soil, clay, ore, coal or peat.",
+    "layer_desc": "Land used for landfill and mine quarry",
+    "icon": "#008000",
+    "extents": {
+      "bounds": [
+                  [-44.087585028245165, -148.88671875000003],
+                  [76.63922560965888, 140.62500000000003]
+                ],
+      "minZoom": 11,
+      "maxZoom": 15
+    }
+  },
+  "pfaslayer": {
+    "url": "https://pfasproject.com/",
+    "report_url": "mailto:pfasproject@gmail.com",
+    "data": {
+      "type": "",
+      "disclaimer": "All locations represent the general area of a contamination site or public water detection. Locations were mapped using the best available data preserved in official records, including data provided by tests of public drinking water systems, the Safe Drinking Water Information System, the Department of Defense report “Addressing Perfluorooctane Sulfonate (PFOS) and Perfluorooctanoic Acid (PFOA),” and the Northeastern University Social Science Environmental Health Research Institute. Levels listed are for the range of the total of all PFAS detected at the time of the tests and do not reflect whether a water system is treating the water to reduce levels.Data on contaminated industrial and military sites was current as of October 2019."
+    },
+    "description": "Northeastern’s PFAS Contamination Site Tracker one of the most comprehensive resources available for tracking PFAS pollution in the U.S.",
+    "layer_desc": "PFAS pollution in the U.S.",
+    "icon": "#b52822",
+    "extents": {
+      "bounds": [
+                  [16.97274101999902, -172.880859375],
+                  [71.27259471233448, -38.05664062500001]
+                ],
+      "minZoom": 5,
+      "maxZoom": 15
+    }
+  },
+  "purpleair": {
+    "url": "https://www.purpleair.com",
+    "report_url": "https://www.purpleair.com/register",
+    "data": {
+      "type": "RT",
+      "disclaimer": "Every icon on the PurpleAir map represents a public PurpleAir sensor and the color indicates the real time PM2.5 reading on the US EPA Air Quality Index scale."
+    },
+    "description": "An air quality monitoring network built on a new generation of \"Internet of Things\" sensors",
+    "layer_desc": "Air quality data from PurpleAir sensors",
+    "icon": "#7c22b5",
+    "extents": {
+      "bounds": [
+                  [-44.087585028245165, -148.88671875000003],
+                  [76.63922560965888, 140.62500000000003]
+                ],
+      "minZoom": 3,
+      "maxZoom": 15
+    }
+  },
+  "skytruth": {
+    "url": "https://alerts.skytruth.org/",
+    "data": {
+      "type": "",
+      "disclaimer": "SkyTruth’s Alerts application reads environmental incidents from multiple websites"
+    },
+    "description": "SkyTruth Alerts is a free service that provides daily updates of environmentally significant incidents by geographical area. ",
+    "layer_desc": "Environmentally significant incidents",
+    "icon": "#f00",
+    "extents": {
+      "bounds": [
+                  [-44.087585028245165, -148.88671875000003],
+                  [76.63922560965888, 140.62500000000003]
+                ],
+      "minZoom": 10,
+      "maxZoom": 15
+    }
+  },
+  "toxicRelease": {
+    "url": "https://www.epa.gov/enviro/tri-search",
+    "data": {
+      "type": "Historical data",
+      "disclaimer": "The information submitted by facilities to the EPA and states is complied annually as the Toxics Release Inventory or TRI, and is stored in a publicly accessible database."
+    },
+    "description": "The Toxics Release Inventory (TRI) Search retrieves data from the TRI database in Envirofacts. The Toxics Release Inventory (TRI) tracks the management of over 650 toxic chemicals that pose a threat to human health and the environment.",
+    "layer_desc": "Toxics Release Inventory",
+    "icon": "#6ccc00",
+    "extents": {
+      "bounds": [
+                  [60.54377524118842, -21.708984375000004],
+                  [13.66733825965496, -148.27148437500003]
+                ],
+      "minZoom": 5,
+      "maxZoom": 15
+    }
+  },
+  "unearthing": {
+    "url": "https://publiclab.org/unearthing-pvd",
+    "data": {
+      "type": "Historical data",
+      "disclaimer": "Social scientists and computer scientists at Brown University have assembled a unique database that contains information on every manufacturing facility that operated in Rhode Island since the early 1950s. The database also contains information on other environmentally risky land uses such as gas stations, dry cleaners, and auto repair shops as far back as 1936. We have also collected information on “green” land uses such as urban parks, playgrounds, schools and community gardens dating back to 1915."
+    },
+    "description": "A platform for historical data-driven analyses of industrial land use, story-mapping, and community organizing.",
+    "layer_desc": "Industrial land use, story-mapping, and community organizing",
+    "icon": "#4f4fff",
+    "extents": {
+      "bounds": [
+                  [42.2102, -72.0204],
+                  [41.2272, -70.9618]
+                ],
+      "minZoom": 6,
+      "maxZoom": 18
+    }
+  },
+  "wisconsinNon-metal": {
+    "url": "https://services.arcgis.com/jDGuO8tYggdCCnUJ/ArcGIS/rest/services/Nonmetallic_and_Potential_frac_sand_mine_proposals_in_West_Central_Wisconsin/FeatureServer/info/itemInfo?f=pjson",
+    "data": {
+      "type": "",
+      "disclaimer": "The information shown on this map was obtained from Wisconsin’s counties and cities in 2017 and thus may not be the most current, comprehensive data available. Source data for parcel polygons was collected between January–July of 2017. However, the tax roll year for most records is 2016, as the assessment cycle lags a year behind. To ensure the most current, comprehensive parcel data, consult the local government’s land information websites first, or contact the city or county land information office directly. The next release of the statewide parcel layer, V4, is tentatively scheduled for July 31, 2018."
+    },
+    "description": "These are all <a href='https://dnr.wi.gov/topic/Mines/Deposit.html' target='_blank'>non-metallic registered parcels</a> across West Central Wisconsin along with potential frac sand mine proposals based on ownership or overlap with existing sand mine operators or landowners.",
+    "layer_desc": "Sand mine operators or landowners",
+    "icon": "#739ccf",
+    "extents": {
+      "bounds": [
+                  [43.689721907017194, -93.12835693359376],
+                  [45.60250901510299, -89.54956054687501]
+                ],
+      "minZoom": 10,
+      "maxZoom": 15
+    }
+  }
+}
+
+},{}],15:[function(require,module,exports){
 require('jquery');
 require('leaflet');
 
@@ -27139,7 +27514,7 @@ L.icon.purpleAirMarkerIcon = function() {
   return new L.Icon.PurpleAirMarkerIcon();
 };
 
-},{"./info.json":13,"jquery":2,"leaflet":6}],15:[function(require,module,exports){
+},{"./info.json":13,"jquery":2,"leaflet":6}],16:[function(require,module,exports){
 require('jquery');
 require('leaflet');
 
@@ -27159,7 +27534,7 @@ require('./layercode.js');
 require('./eonetFiresLayer');
 require('./AllLayers.js');
 
-},{"./AllLayers.js":8,"./aqicnLayer.js":9,"./eonetFiresLayer":10,"./fracTrackerMobileLayer.js":11,"./indigenousLayers.js":12,"./layercode.js":14,"./openWeatherMapLayer.js":16,"./osmLandfillMineQuarryLayer.js":17,"./pfasLayer.js":18,"./purpleLayer.js":19,"./toxicReleaseLayer.js":20,"./unearthing.js":21,"./wisconsinLayer.js":27,"jquery":2,"leaflet":6,"leaflet-providers":5}],16:[function(require,module,exports){
+},{"./AllLayers.js":8,"./aqicnLayer.js":9,"./eonetFiresLayer":10,"./fracTrackerMobileLayer.js":11,"./indigenousLayers.js":12,"./layercode.js":15,"./openWeatherMapLayer.js":17,"./osmLandfillMineQuarryLayer.js":18,"./pfasLayer.js":19,"./purpleLayer.js":20,"./toxicReleaseLayer.js":21,"./unearthing.js":22,"./wisconsinLayer.js":30,"jquery":2,"leaflet":6,"leaflet-providers":5}],17:[function(require,module,exports){
 L.OWM = L.TileLayer.extend({
   options: {
     appId: '4c6704566155a7d0d5d2f107c5156d6e', /* pass your own AppId as parameter when creating the layer. Get your own AppId at https://www.openweathermap.org/appid */
@@ -28671,7 +29046,7 @@ L.OWM.Utils = {
 
 
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 L.LayerGroup.OSMLandfillMineQuarryLayer = L.LayerGroup.extend(
 
   {
@@ -28864,7 +29239,7 @@ L.layerGroup.osmLandfillMineQuarryLayer = function(options) {
   return new L.LayerGroup.OSMLandfillMineQuarryLayer(options);
 };
 
-},{"./info.json":13}],18:[function(require,module,exports){
+},{"./info.json":13}],19:[function(require,module,exports){
 L.Icon.PfasLayerIcon = L.Icon.extend({
   options: {
     iconUrl: 'https://openclipart.org/image/300px/svg_to_png/117253/1297044906.png',
@@ -29023,7 +29398,7 @@ L.layerGroup.pfasLayer = function(options) {
 };
 
 
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 require('heatmap.js');
 require('leaflet-heatmap');
 
@@ -29149,7 +29524,7 @@ L.layerGroup.purpleLayer = function(options) {
   return new L.LayerGroup.PurpleLayer(options);
 };
 
-},{"heatmap.js":1,"leaflet-heatmap":4}],20:[function(require,module,exports){
+},{"heatmap.js":1,"leaflet-heatmap":4}],21:[function(require,module,exports){
 L.Icon.ToxicReleaseIcon = L.Icon.extend({
   options: {
     iconUrl: 'https://www.clker.com/cliparts/r/M/L/o/R/i/green-dot.svg',
@@ -29293,7 +29668,7 @@ L.layerGroup.toxicReleaseLayer = function(options) {
   return new L.LayerGroup.ToxicReleaseLayer(options);
 };
 
-},{"./info.json":13}],21:[function(require,module,exports){
+},{"./info.json":13}],22:[function(require,module,exports){
 L.LayerGroup.unearthing = L.LayerGroup.extend(
 
   {
@@ -29372,57 +29747,104 @@ L.layerGroup.Unearthing = function(options) {
   return new L.LayerGroup.unearthing(options);
 };
 
-},{}],22:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
+L.Control.Info = L.Control.extend({
+  options: {
+    mapHasControl: false
+  },
+
+  initialize: function(options) {
+    L.Util.setOptions(this, options);
+    this._infoDisplay = L.DomUtil.create('div');
+    this._infoDisplay.classList.add('leaflet-control-info', 'leaflet-bar', 'leaflet-control');
+    this._infoDisplay.style.backgroundColor = '#fff';
+    if(this.options.classname) {
+      this._infoDisplay.classList.add(this.options.classname);
+    }
+    this._textElement = L.DomUtil.create('span');
+    this._textElement.innerHTML = this.options.text;
+    this._textElement.classList.add('leaflet-control-info-text');
+    this._infoDisplay.appendChild(this._textElement);
+    this._closeButton = L.DomUtil.create('button');
+    this._closeButton.classList.add('leaflet-control-info-button');
+    this._closeButton.innerText = 'close';
+    this._infoDisplay.appendChild(this._closeButton);
+    this.onClose(map);
+  },
+
+  onAdd: function(map) {
+    this.options.mapHasControl = true;
+    return this._infoDisplay;
+  },
+
+  onClose: function(map) {
+    var self = this;
+    this._closeButton.addEventListener('click', function() {
+      self.options.mapHasControl = false;
+      map.removeControl(self);
+    });
+  },
+
+  onRemove: function(map) {},
+});
+
+L.control.info = function(options) {
+  return new L.Control.Info(options);
+};
+
+},{}],24:[function(require,module,exports){
 L.Control.Embed = L.Control.extend({
 
-    options: {
-        position: 'topleft',
-    },
+  options: {
+    position: 'topleft',
+    hostname: 'publiclab.github.io',
+  },
 
-    initialize: function(options) {
-        L.Util.setOptions(this, options);
-        this._embedElement = L.DomUtil.create('div');
-        this._embedElement.classList.add('leaflet-control-embed', 'leaflet-bar', 'leaflet-control')
-        this._embedAnchorElement = L.DomUtil.create('a');
-        this._embedAnchorElement.classList.add('leaflet-control-embed-link');
-        this._embedAnchorElement.setAttribute('href', '#');
-        this._embedAnchorElement.setAttribute('onclick', 'return false'); // To prevent the removal of url hash
-        this._embedAnchorElement.setAttribute('title', 'embed');
-        this._embedAnchorElement.setAttribute('role', 'button');
-        this._embedAnchorElement.setAttribute('aria-labelledby', 'embed');
-        this._embedElement.appendChild(this._embedAnchorElement);
-        this._embedIconElement = L.DomUtil.create('i', 'fas fa-code');
-        this._embedAnchorElement.appendChild(this._embedIconElement);
-        this.onClick();
-    },
+  initialize: function(options) {
+    L.Util.setOptions(this, options);
+    this._embedElement = L.DomUtil.create('div');
+    this._embedElement.classList.add('leaflet-control-embed', 'leaflet-bar', 'leaflet-control');
+    this._embedAnchorElement = L.DomUtil.create('a');
+    this._embedAnchorElement.classList.add('leaflet-control-embed-link');
+    this._embedAnchorElement.setAttribute('href', '#');
+    this._embedAnchorElement.setAttribute('onclick', 'return false'); // To prevent the removal of url hash
+    this._embedAnchorElement.setAttribute('title', 'embed');
+    this._embedAnchorElement.setAttribute('role', 'button');
+    this._embedAnchorElement.setAttribute('aria-labelledby', 'embed');
+    this._embedElement.appendChild(this._embedAnchorElement);
+    this._embedIconElement = L.DomUtil.create('i', 'fas fa-code');
+    this._embedAnchorElement.appendChild(this._embedIconElement);
+    this.onClick();
+  },
 
-    onAdd: function(map) {
-        return this._embedElement;
-    },
+  onAdd: function(map) {
+    return this._embedElement;
+  },
 
-    onClick: function() {
-        var self = this;
-        L.DomEvent.on(this._embedElement, 'click', function(ev) {
-            prompt('Use this HTML code to embed this map on another site.', self.generateCode());
-        })
-    },
+  onClick: function() {
+    var self = this;
+    L.DomEvent.on(this._embedElement, 'click', function(ev) {
+      prompt('Use this HTML code to embed this map on another site.', self.generateCode());
+    });
+  },
 
-    generateCode: function() {
-        var currentHash = window.location.hash;
-        var path = window.location.pathname;
-        var code = '<iframe style="border:none;" width="100%" height="900px" src="//publiclab.github.io/leaflet-environmental-layers' + path + currentHash +'"></iframe>';
-        return code;
-    },
+  generateCode: function() {
+    var currentHash = window.location.hash;
+    var path = window.location.pathname === '/example/embed.html' ? '/example/index.html' : window.location.pathname;
+    var hostname = this.options.hostname;
+    var code = '<iframe style="border:none;" width="100%" height="900px" src="//' + hostname + '/leaflet-environmental-layers' + path + currentHash +'"></iframe>';
+    return code;
+  },
 
-    onRemove: function(map) {}
+  onRemove: function(map) {},
 
-})
+});
 
 L.control.embed = function(options) {
-    return new L.Control.Embed(options);
-}
+  return new L.Control.Embed(options);
+};
 
-},{}],23:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 L.Control.Layers.include({
   getActiveOverlayNames: function() {
     var layers = [];
@@ -29438,7 +29860,7 @@ L.Control.Layers.include({
   },
 });
 
-},{}],24:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 L.SpreadsheetLayer = L.LayerGroup.extend({
   // options: {
   // Must be supplied:
@@ -29604,7 +30026,478 @@ L.spreadsheetLayer = function(options) {
   return new L.SpreadsheetLayer(options);
 };
 
-},{}],25:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
+L.Control.LayersBrowser = L.Control.Layers.extend({
+  options: {
+    collapsed: true,
+    position: 'topright',
+    autoZIndex: true,
+    hideSingleBase: true,
+    overlays: {}
+  },
+
+  initialize: function(baseLayers, overlays, options) {
+    this.options.overlays = overlays;
+    L.Util.setOptions(this, options);
+
+    this._layerControlInputs = [];
+    this._layers = [];
+    this._lastZIndex = 0;
+    this._handlingClick = false;
+
+    for (var i in baseLayers) {
+      this._addLayer(baseLayers[i], i);
+    }
+
+    for (i in overlays) {
+      if (overlays[i].category === 'group') {
+        for (var j in overlays[i].layers) {
+          this._addLayer(overlays[i].layers[j], j, true, i);
+        }
+      } else {
+        this._addLayer(overlays[i], i, true);
+      }
+    }
+  },
+
+  expand: function() {
+    L.DomUtil.addClass(this._container, 'leaflet-control-layers-expanded');
+    this._section.style.height = null;
+    var acceptableHeight = this._map.getSize().y - (this._container.offsetTop + 50);
+    if (acceptableHeight < this._section.clientHeight) {
+      L.DomUtil.addClass(this._section, 'leaflet-control-layers-scrollbar');
+      this._section.style.height = acceptableHeight + 'px';
+    } else {
+      L.DomUtil.removeClass(this._section, 'leaflet-control-layers-scrollbar');
+    }
+    this._checkDisabledLayers();
+    return this;
+  },
+
+  _initLayout: function() {
+    var className = 'leaflet-control-layers';
+    var container = this._container = L.DomUtil.create('div', className);
+    var collapsed = this.options.collapsed;
+
+    // makes this work on IE touch devices by stopping it from firing a mouseout event when the touch is released
+    container.setAttribute('aria-haspopup', true);
+
+    L.DomEvent.disableClickPropagation(container);
+    L.DomEvent.disableScrollPropagation(container);
+
+    var section = this._section = L.DomUtil.create('section', className + '-list' +
+    ' ' + className + '-menu');
+
+    var img = L.DomUtil.create('img', 'mx-auto d-block', section);
+    img.src = 'https://static.thenounproject.com/png/257237-200.png';
+    img.alt = 'industrial building icon by Parkjisun';
+    img.style.maxHeight = '75px';
+    img.style.maxWidth = '75px';
+
+    var heading = L.DomUtil.create('h3', 'text-center', section);
+    heading.innerHTML = 'Environmental data near here';
+
+    var lead = L.DomUtil.create('p', 'text-center', section);
+    lead.innerHTML = 'A range of groups publish environmental data near here. ';
+
+    var readMoreLink = L.DomUtil.create('a', '', lead);
+    readMoreLink.innerHTML = 'Read more';
+    readMoreLink.href = '#';
+
+    var or = L.DomUtil.create('span', '', lead);
+    or.innerHTML = ' or ';
+
+    var shareLink = L.DomUtil.create('a', '', lead);
+    shareLink.innerHTML = 'share your own map data.';
+    shareLink.href = '#';
+
+    if (collapsed) {
+      this._map.on('click', this.collapse, this);
+
+      if (!L.Browser.android) {
+        L.DomEvent.on(container, {
+          mouseenter: this.expand,
+          mouseleave: this.collapse,
+        }, this);
+      }
+    }
+
+    var link = this._layersLink = L.DomUtil.create('a', className + '-toggle', container);
+    link.href = '#';
+    link.title = 'Layers';
+
+    if (L.Browser.touch) {
+      L.DomEvent.on(link, 'click', L.DomEvent.stop);
+      L.DomEvent.on(link, 'click', this.expand, this);
+    } else {
+      L.DomEvent.on(link, 'focus', this.expand, this);
+    }
+
+    if (!collapsed) {
+      this.expand();
+    }
+
+    this._baseLayersList = L.DomUtil.create('div', className + '-base', section);
+    this._separator = L.DomUtil.create('div', className + '-separator', section);
+    this._overlaysList = L.DomUtil.create('div', className + '-overlays', section);
+    this._overlaysList.style.maxHeight = '35vh';
+    this._overlaysList.style.overflowY = 'scroll';
+    this._overlaysList.style.overflowX = 'hidden';
+
+    container.appendChild(section);
+  },
+
+  _addLayer: function(layer, name, overlay, group) {
+    if (this._map) {
+      layer.on('add remove', this._onLayerChange, this);
+    }
+
+    this._layers.push({
+      layer: layer,
+      name: name,
+      overlay: overlay,
+      group: group
+    });
+
+    if (this.options.autoZIndex && layer.setZIndex) {
+      this._lastZIndex++;
+      layer.setZIndex(this._lastZIndex);
+    }
+
+    this._expandIfNotCollapsed();
+  },
+
+  _update: function() {
+    if (!this._container) { return this; }
+
+    L.DomUtil.empty(this._baseLayersList);
+    L.DomUtil.empty(this._overlaysList);
+
+    this._layerControlInputs = [];
+    var baseLayersPresent; var overlaysPresent; var i; var obj; var baseLayersCount = 0;
+
+    var group;
+    
+    for (i = 0; i < this._layers.length; i++) {
+      var groupHolder;
+      obj = this._layers[i];
+      if(group !== obj.group) {
+        this._createGroup(obj);
+        groupHolder = this._createGroupHolder(obj);
+      };
+
+      if(obj.group) {
+        groupHolder.appendChild(this._addItem(obj));
+      } else {
+        this._addItem(obj);
+      }
+      
+      group = obj.group;
+      overlaysPresent = overlaysPresent || obj.overlay;
+      baseLayersPresent = baseLayersPresent || !obj.overlay;
+      baseLayersCount += !obj.overlay ? 1 : 0;
+    }
+
+    // Hide base layers section if there's only one layer.
+    if (this.options.hideSingleBase) {
+      baseLayersPresent = baseLayersPresent && baseLayersCount > 1;
+      this._baseLayersList.style.display = baseLayersPresent ? '' : 'none';
+    }
+
+    this._separator.style.display = overlaysPresent && baseLayersPresent ? '' : 'none';
+
+    return this;
+  },
+
+  _createSeparator: function() {
+    var separator = document.createElement('div');
+    separator.className = 'leaflet-control-layers-separator';
+
+    return separator;
+  },
+
+  _createLayerInfoElements: function(obj) {
+    var layerData = require('../layerData.json');
+    var data;
+    for (let i in layerData) {
+      if((obj.group && obj.group.replace(/\s/g, '').toLowerCase() === i.toLowerCase()) ||
+        (obj.name.replace(/\s/g, '').toLowerCase() === i.toLowerCase())) {
+          data = layerData[i];
+      }
+    }
+    
+    var icon = document.createElement('div');
+    icon.className = 'rounded-circle layer-icon';
+    icon.style.width = '10px';
+    icon.style.height = '10px';
+    icon.style.backgroundColor = data && data.icon || 'black';
+    icon.style.display = 'inline-block';
+    icon.style.margin = '0 1em';
+
+    var reportBtn = document.createElement('a');
+    reportBtn.setAttribute('role', 'button');
+    reportBtn.setAttribute('href', '#');
+    reportBtn.setAttribute('target', '_blank');
+    reportBtn.innerHTML = 'Add a report';
+    reportBtn.className = 'btn btn-default btn-outline-secondary btn-sm report-btn invisible';
+    reportBtn.style.margin = '0 1em';
+    reportBtn.style.lineHeight = '10px';
+    reportBtn.style.color = '#717171';
+
+    if(data && data.report_url) {
+      reportBtn.setAttribute('href', data.report_url);
+      reportBtn.classList.remove('invisible');
+    }
+
+    reportBtn.addEventListener('mouseover', function() {
+      reportBtn.style.color = 'white';
+    });
+
+    reportBtn.addEventListener('mouseout', function() {
+      reportBtn.style.color = '#717171';
+    });
+
+    var layerDesc = document.createElement('span');
+    layerDesc.innerHTML = data && data.layer_desc;
+    layerDesc.className = 'layer-description';
+    layerDesc.style.fontSize = '1.2em';
+
+    var dataInfo = document.createElement('div');
+    dataInfo.style.display = 'inline-block';
+    dataInfo.className = 'float-sm-right layer-data-info';
+
+    dataInfo.style.transform = 'translateY(6px)';
+
+    var dataType = document.createElement('span');
+    dataType.innerHTML = 'NRT/RT';
+    dataType.style.color = '#717171';
+
+    if(data && data.data.type !== 'NRT' && data.data.type !== 'RT') {
+      dataType.classList.add('invisible');
+    }
+
+    var dataInfoBtn = document.createElement('button');
+    dataInfoBtn.style.backgroundColor = 'transparent';
+    dataInfoBtn.style.borderColor = 'transparent';
+    var infoIcon = document.createElement('i');
+    infoIcon.className = 'fas fa-info-circle';
+    infoIcon.style.fontSize = '1.2em';
+    infoIcon.style.color = '#717171';
+
+    var infoModal;
+    dataInfoBtn.addEventListener('click', function() {
+      // Add only one instance of the modal for the map layer
+      if(!infoModal || !infoModal.options.mapHasControl) {
+        infoModal = new L.control.info({ 
+          text: data && data.data.disclaimer,
+          classname: 'info-modal'
+        });
+
+        infoModal.addTo(map);
+      }
+    });
+
+    dataInfo.appendChild(dataType);
+    dataInfo.appendChild(dataInfoBtn);
+    dataInfoBtn.appendChild(infoIcon);
+
+    return {
+      icon: icon,
+      reportBtn: reportBtn,
+      layerDesc: layerDesc,
+      dataInfo: dataInfo,
+      dataType: dataType,
+      dataInfoBtn: dataInfoBtn,
+      infoIcon: infoIcon
+    }
+  },
+
+  _createGroup: function(obj) {
+    if(obj.group) {
+      var layerGroup = document.createElement('a');
+      layerGroup.href = '#' + obj.group.replace(/\s/g, '');
+      layerGroup.setAttribute('data-toggle', 'collapse');
+      layerGroup.setAttribute('role', 'button');
+      layerGroup.setAttribute('aria-expanded', 'false');
+      layerGroup.setAttribute('aria-controls', obj.group)
+
+      var groupName = document.createElement('span');
+      groupName.innerHTML = obj.group;
+      groupName.className = 'layer-group-name';
+      groupName.style.margin = '0 1em';
+      groupName.style.fontSize = '1.2em';
+      groupName.style.fontWeight = 'bold';
+      groupName.style.display = 'inline-block';
+      groupName.style.width = '12em';
+
+      var chevron = document.createElement('i');
+      chevron.className = 'fa fa-chevron-down';
+      chevron.setAttribute('aria-hidden', 'true');
+      chevron.style.margin = '1em';
+      
+      layerGroup.addEventListener('click', function() {
+        if(chevron.className === 'fa fa-chevron-down') {
+          chevron.className = 'fa fa-chevron-up';
+        } else {
+          chevron.className = 'fa fa-chevron-down';
+        }
+      });
+
+      var elements = this._createLayerInfoElements(obj);
+
+      var titleHolder = document.createElement('div');
+      titleHolder.className = 'clearfix layer-info-container';
+      titleHolder.appendChild(layerGroup);
+      layerGroup.appendChild(chevron);
+      layerGroup.appendChild(elements.icon);
+      titleHolder.appendChild(elements.reportBtn);
+      titleHolder.appendChild(groupName);
+      titleHolder.appendChild(elements.layerDesc);
+      titleHolder.appendChild(elements.dataInfo);
+
+      var separator = this._createSeparator();
+
+      this._hideOutOfBounds(obj, [titleHolder, separator]);
+      
+      var container = obj.overlay ? this._overlaysList : this._baseLayersList;
+      container.appendChild(titleHolder);
+      container.appendChild(separator);
+      return titleHolder;
+    }
+  },
+
+  _createGroupHolder: function(obj) {
+    var groupName;
+    if(obj.group) {
+      groupName =  obj.group.replace(/\s/g, '');
+    }
+    var groupHolder = document.createElement('div');
+    groupHolder.className = 'layers-sub-list collapse';
+    groupHolder.setAttribute('id', groupName);
+
+    var container = obj.overlay ? this._overlaysList : this._baseLayersList;
+    container.appendChild(groupHolder);
+    
+    return groupHolder;
+  },
+
+  _addItem: function(obj) {
+    var labelContainer = document.createElement('div');
+    var label = document.createElement('label');
+    label.style.display = 'inline-block';
+    var checked = this._map.hasLayer(obj.layer);
+    var input;
+
+    if (obj.overlay) {
+      input = document.createElement('input');
+      input.type = 'checkbox';
+      input.className = 'leaflet-control-layers-selector';
+      input.defaultChecked = checked;
+      input.style.margin = '0.5em 0.9em';
+    } else {
+      input = this._createRadioElement('leaflet-base-layers_' + L.Util.stamp(this), checked);
+    }
+
+    this._layerControlInputs.push(input);
+    input.layerId = L.Util.stamp(obj.layer);
+
+    L.DomEvent.on(input, 'click', this._onInputClick, this);
+
+    var name = document.createElement('span');
+    name.innerHTML = ' ' + obj.name;
+    name.style.fontWeight = 'bold';
+    name.style.display = 'inline-block';
+    
+    name.style.fontSize = '1.2em';
+
+    var elements = this._createLayerInfoElements(obj);
+    var separator = this._createSeparator();
+
+    // Helps from preventing layer control flicker when checkboxes are disabled
+    // https://github.com/Leaflet/Leaflet/issues/2771
+    var holder = document.createElement('div');
+
+    labelContainer.appendChild(label);
+    label.appendChild(holder);
+    holder.appendChild(input);
+    if(obj.overlay && !obj.group) {
+      holder.appendChild(elements.icon);
+      holder.appendChild(elements.reportBtn);
+      name.style.margin = '0 1em';
+      name.style.width = '12em';
+      name.className = 'layer-name';
+      label.className = 'label';
+    }
+    holder.appendChild(name);
+    if(obj.overlay && obj.group) {
+      label.style.width = '100%';
+      label.style.marginBottom = '3px';
+      input.style.marginLeft = '3.8em';
+      name.style.marginLeft = '9.6em';
+      name.style.color = '#717171';
+      name.className = 'layer-list-name';
+      labelContainer.appendChild(separator);
+    }
+    if(obj.overlay && !obj.group) {
+      labelContainer.appendChild(elements.layerDesc);
+      labelContainer.className = 'clearfix layer-info-container';
+      labelContainer.appendChild(elements.dataInfo);
+      labelContainer.appendChild(separator);
+    }
+
+    this._hideOutOfBounds(obj, [labelContainer, separator]);
+    
+    var container = obj.overlay ? this._overlaysList : this._baseLayersList;
+    container.appendChild(labelContainer);
+    this._checkDisabledLayers();
+    return labelContainer;
+  },
+
+  _hideOutOfBounds: function(obj, elements) {
+    var self = this;
+    map.on('moveend', function() {
+      var layerData = require('../layerData.json');
+      var currentBounds = map.getBounds();
+      var currentZoom = map.getZoom();
+      var data;
+      var bounds;
+      for (let j in layerData) {
+        if((obj.group && obj.group.replace(/\s/g, '').toLowerCase() === j.toLowerCase()) ||
+          (obj.name.replace(/\s/g, '').toLowerCase() === j.toLowerCase())) {
+            data = layerData[j];
+        };
+      };
+      var layerName;
+      if(obj.name && !obj.group) {
+        layerName = self.options.overlays[obj.name];
+      } else {
+        layerName = self.options.overlays[obj.group].layers[obj.name];
+      }
+      if(data) {
+        bounds = L.latLngBounds(data.extents.bounds);
+        for(var i in elements) {
+          if((!bounds.intersects(currentBounds) && map.hasLayer(layerName)) ||
+           (currentZoom < data.extents.minZoom && map.hasLayer(layerName))) {
+            elements[i].style.display = 'none';
+              // Remove layer from map if active
+              map.removeLayer(layerName);
+          } else if(!bounds.intersects(currentBounds) || currentZoom < data.extents.minZoom) {
+            elements[i].style.display = 'none';
+          } else {
+            elements[i].style.display = 'block';
+          }
+        };
+        
+      };
+    })
+  }
+});
+
+L.control.layersBrowser = function(baseLayers, overlays, options) {
+  return new L.Control.LayersBrowser(baseLayers, overlays, options);
+};
+
+},{"../layerData.json":14}],28:[function(require,module,exports){
 L.Control.LegendControl = L.Control.extend({
   options: {
     position: 'bottomleft',
@@ -29661,7 +30554,7 @@ L.control.legendControl = function(options) {
   return new L.Control.LegendControl(options);
 };
 
-},{}],26:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 omsUtil = function(map, options) {
   var oms = new OverlappingMarkerSpiderfier(map, options);
 
@@ -29678,7 +30571,7 @@ omsUtil = function(map, options) {
   return oms;
 };
 
-},{}],27:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 wisconsinLayer = function(map) {
   var info = require('./info.json');
 
@@ -29711,4 +30604,4 @@ wisconsinLayer = function(map) {
   return Wisconsin_NM;
 };
 
-},{"./info.json":13}]},{},[3,7,15,22,23,24,25,26]);
+},{"./info.json":13}]},{},[3,7,16,23,24,25,26,27,28,29]);
