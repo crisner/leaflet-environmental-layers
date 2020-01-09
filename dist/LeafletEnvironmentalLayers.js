@@ -25860,10 +25860,10 @@ L.LayerGroup.environmentalLayers = L.LayerGroup.extend(
       layers0: ['purpleLayer', 'toxicReleaseLayer', 'pfasLayer', 'aqicnLayer', 'osmLandfillMineQuarryLayer', 'Unearthing'],
       layers1: ['purpleairmarker', 'skytruth', 'fractracker', 'odorreport', 'mapknitter', 'openaq', 'luftdaten', 'opensense'],
       layers2: ['Power', 'Petroleum', 'Telecom', 'Water'],
-      layers3: ['wisconsin', 'fracTrackerMobile'],
+      layers3: ['wisconsin'],
       layers4: ['income', 'americanIndian', 'asian', 'black', 'multi', 'hispanic', 'nonWhite', 'white', 'plurality'],
       layers5: ['clouds', 'cloudsClassic', 'precipitation', 'precipitationClassic', 'rain', 'rainClassic', 'snow', 'pressure', 'pressureContour', 'temperature', 'wind', 'city'],
-      layers6: ['eonetFiresLayer'],
+      layers6: ['eonetFiresLayer', 'fracTrackerMobile'],
 
       OpenInfraMap_Power: L.tileLayer('https://tiles-{s}.openinframap.org/power/{z}/{x}/{y}.png', {
         maxZoom: 18,
@@ -26280,28 +26280,107 @@ L.geoJSON.eonetFiresLayer = function(options) {
 };
 
 },{}],11:[function(require,module,exports){
-fracTrackerMobileLayer = function(map) {
-  var FracTracker_mobile = L.esri.featureLayer({
-    url: 'https://services.arcgis.com/jDGuO8tYggdCCnUJ/arcgis/rest/services/FracTrackerMobileAppNPCAMesaVerdeNationalPark_051416/FeatureServer/0/',
-    simplifyFactor: 1,
-  });
+L.GeoJSON.FracTrackerMobile = L.GeoJSON.extend(
+  {
+    options: { },
 
-  FracTracker_mobile.bindPopup(function(layer) {
-    return L.Util.template('<p><strong>Id : </strong>{OBJECTID}<br><strong>FT_MV_ID : </strong>{FT_MV_ID}<br><strong>Long : </strong>{Long}<br><strong>Lat :</strong> {Lat} <br> <strong>Caption : </strong>{caption} <br> <strong>issue :</strong> {issue} <br> <strong>facility :</strong> {facility} <br><strong> Location :</strong> {location} <br> <strong>URL :</strong> <a href={URL2}>{URL2}</a> <br> <img src={URL2} height="280" width="290"></p>', layer.feature.properties);
-  });
+    initialize: function(options) {
+      options = options || {};
+      L.Util.setOptions(this, options);
+      this._layers = {};
+    },
 
-  FracTracker_mobile.on('loading', function(e) {
-    if (typeof map.spin === 'function') {
-      map.spin(true);
-    }
-  });
-  FracTracker_mobile.on('load', function(e) {
-    if (typeof map.spin === 'function') {
-      map.spin(false);
-    }
-  });
+    onAdd: function(map) {
+      map.on('moveend', this.requestData, this);
+      this._map = map;
+      this.requestData();
+    },
 
-  return FracTracker_mobile;
+    onRemove: function(map) {
+      map.off('moveend', this.requestData, this);
+      if (typeof map.spin === 'function') {
+        map.spin(false);
+      }
+      this.clearLayers();
+      this._layers = {};
+    },
+
+    requestData: function() {
+      var self = this;
+
+      (function() {
+        var bounds = self._map.getBounds();
+        var northEast = bounds.getNorthEast();
+        var southWest = bounds.getSouthWest();
+        var left = southWest.lng;
+        var right = northEast.lng;
+        var top = northEast.lat;
+        var bottom = southWest.lat;
+        var polygon = left + ' ' + top + ',' + right + ' ' + top + ',' + right + ' ' + bottom + ',' + left + ' ' + bottom + ',' + left + ' ' + top;
+        
+        var $ = window.jQuery;
+        var fractrackerMobile_url = 'https://cors-anywhere.herokuapp.com/https://api.fractracker.org/v1/data/report?page=1&results_per_page=250&q={"filters":[{"name":"geometry","op":"intersects","val":"SRID=4326;POLYGON((' + polygon +'))"}],"order_by":[{"field":"report_date","direction":"desc"},{"field":"id","direction":"desc"}]}';
+
+        if (typeof self._map.spin === 'function') {
+          self._map.spin(true);
+        }
+
+        return $.getJSON(fractrackerMobile_url);
+
+      })().done(function(data) {
+        self.parseData(data);
+        if (typeof self._map.spin === 'function') {
+          self._map.spin(false);
+        }
+      });
+    },
+
+    parseData: function(data) {
+      if (!!data) {
+        for ( var i = 0; i < data.features.length; i++) {
+          this.addMarker(data.features[i]);
+        }
+      }
+    },
+
+    getMarker: function(data) {
+      var coords = this.coordsToLatLng(data.geometry.coordinates || data.geometry.geometries[0].coordinates);
+      var lat = coords.lat;
+      var lng = coords.lng;
+      var description = data.properties.description ? data.properties.description : '';
+      var date = new Date(data.properties.report_date).toUTCString();
+      var dateModified = new Date(data.properties.modified_on).toUTCString();
+      var organizationName = data.properties.created_by.organization_name ? data.properties.created_by.organization_name : '';
+      var imageUrl = data.properties.images[0] && data.properties.images[0].properties.square;
+      var imageElement = imageUrl ? '<img src="'  + imageUrl + '" alt="User image" width="100%" />' : '';
+      var marker;
+      if (!isNaN((lat)) && !isNaN((lng)) ) {
+        marker = new L.circleMarker([lat, lng], { radius: 5, color: '#e4458b'})
+        .bindPopup(imageElement + '<br><strong>'+ description + '</strong><br>Lat : ' + lat + '<br>Lon : '+ lng + '<br>Reported on : ' + date + '<br>Modified on : ' + dateModified + '<br>' + organizationName);
+      }
+      return marker;
+    },
+
+    addMarker: function(data) {
+      var marker;
+      var key = data.id;
+      if (!this._layers[key]) {
+        marker = this.getMarker(data);
+        this._layers[key] = marker;
+        this.addLayer(marker);
+      }
+    },
+
+    coordsToLatLng: function(coords) {
+      return new L.LatLng(coords[1], coords[0]);
+    },
+
+  },
+);
+
+
+L.geoJSON.fracTrackerMobile = function(options) {
+  return new L.GeoJSON.FracTrackerMobile(options);
 };
 
 },{}],12:[function(require,module,exports){
@@ -26604,15 +26683,7 @@ module.exports={
     },
     "description": "The World Air Quality Index project provides transparent and world-wide air quality information for more than 100 countries, covering more than 12,000 stations in 1000 major cities.",
     "layer_desc": "World-wide air quality information",
-    "icon": "#096",
-    "extents": {
-      "bounds": [
-                  [-44.087585028245165, -148.88671875000003],
-                  [76.63922560965888, 140.62500000000003]
-                ],
-      "minZoom": 3,
-      "maxZoom": 15
-    }
+    "icon": "#096"
   },
   "eonetFires": {
     "url": "https://eonet.sci.gsfc.nasa.gov/",
@@ -26622,15 +26693,7 @@ module.exports={
     },
     "description": "EONET provides a curated source of continuously updated natural event metadata. EONET Events: Wildfires: Wildfires includes all nature of fire, including forest and plains fires, as well as urban and industrial fire events. Fires may be naturally caused or manmade.",
     "layer_desc": "All nature of fire events.",
-    "icon": "#ff421d",
-    "extents": {
-      "bounds": [
-                  [-44.087585028245165, -148.88671875000003],
-                  [76.63922560965888, 140.62500000000003]
-                ],
-      "minZoom": 3,
-      "maxZoom": 15
-    }
+    "icon": "#ff421d"
   },
   "fractracker": {
     "url": "https://www.fractracker.org/",
@@ -26642,10 +26705,6 @@ module.exports={
     "layer_desc": "Oil and gas development",
     "icon": "#e8e800",
     "extents": {
-      "bounds": [
-                  [-44.087585028245165, -148.88671875000003],
-                  [76.63922560965888, 140.62500000000003]
-                ],
       "minZoom": 5,
       "maxZoom": 15
     }
@@ -26656,14 +26715,14 @@ module.exports={
       "type": "",
       "disclaimer": "Data from agency data sets to crowd-sourced data"
     },
-    "description": "FracTracker used the mobile app to help volunteers document the rich biodiversity in and near Mesa Verde",
-    "layer_desc": "User reports in NPCA-Mesa Verde National Park",
+    "description": "",
+    "layer_desc": "User reports",
     "icon": "#e4458b",
     "extents": {
       "bounds": [
-                  [51.536085601784755, -59.98535156250001],
-                  [27.800209937418252, -123.26660156250001]
-                ],
+        [-44.087585028245165, -148.88671875000003],
+        [76.63922560965888, 140.62500000000003]
+      ],
       "minZoom": 5,
       "maxZoom": 15
     }
@@ -26678,10 +26737,6 @@ module.exports={
     "layer_desc": "Indigenous nations - Territories, Languages, Treaties",
     "icon": "#532200",
     "extents": {
-      "bounds": [
-                  [-44.087585028245165, -148.88671875000003],
-                  [76.63922560965888, 140.62500000000003]
-                ],
       "minZoom": 6,
       "maxZoom": 15
     }
@@ -26712,15 +26767,7 @@ module.exports={
     },
     "description": "building particulate matter sensors and visualizing the data in an overall picture.",
     "layer_desc": "Fine dust measurement",
-    "icon": "#4edd51",
-    "extents": {
-      "bounds": [
-                  [-44.087585028245165, -148.88671875000003],
-                  [76.63922560965888, 140.62500000000003]
-                ],
-      "minZoom": 3,
-      "maxZoom": 15
-    }
+    "icon": "#4edd51"
   },
   "mapknitter": {
     "url": "https://mapknitter.org/",
@@ -26732,10 +26779,6 @@ module.exports={
     "layer_desc": "Map data from aerial photos from balloons and kites",
     "icon": "#ca283b",
     "extents": {
-      "bounds": [
-                  [-44.087585028245165, -148.88671875000003],
-                  [76.63922560965888, 140.62500000000003]
-                ],
       "minZoom": 10,
       "maxZoom": 15
     }
@@ -26751,10 +26794,6 @@ module.exports={
     "layer_desc": "Bad odor events",
     "icon": "#ff00ff",
     "extents": {
-      "bounds": [
-                  [-44.087585028245165, -148.88671875000003],
-                  [76.63922560965888, 140.62500000000003]
-                ],
       "minZoom": 8,
       "maxZoom": 15
     }
@@ -26767,15 +26806,7 @@ module.exports={
     },
     "description": "OpenAQ is a non-profit organization empowering communities around the globe to clean their air by harmonizing, sharing, and using open air quality data.",
     "layer_desc": "Air quality data",
-    "icon": "#912d25",
-    "extents": {
-      "bounds": [
-                  [-44.087585028245165, -148.88671875000003],
-                  [76.63922560965888, 140.62500000000003]
-                ],
-      "minZoom": 3,
-      "maxZoom": 15
-    }
+    "icon": "#912d25"
   },
   "openInfraMap": {
     "url": "https://openinframap.org/about.html",
@@ -26785,15 +26816,7 @@ module.exports={
     },
     "description": "Open Infrastructure Map is a view of the world's hidden infrastructure mapped in the OpenStreetMap database.",
     "layer_desc": "World's hidden infrastructure",
-    "icon": "#b59f10",
-    "extents": {
-      "bounds": [
-                  [-44.087585028245165, -148.88671875000003],
-                  [76.63922560965888, 140.62500000000003]
-                ],
-      "minZoom": 3,
-      "maxZoom": 15
-    }
+    "icon": "#b59f10"
   },
   "opensense": {
     "url": "https://opensensemap.org/",
@@ -26804,15 +26827,7 @@ module.exports={
     },
     "description": "openSenseMap is a platform for open sensor data at which everyone can participate in.",
     "layer_desc": "Sensor data from senseboxes",
-    "icon": "",
-    "extents": {
-      "bounds": [
-                  [-44.087585028245165, -148.88671875000003],
-                  [76.63922560965888, 140.62500000000003]
-                ],
-      "minZoom": 3,
-      "maxZoom": 15
-    }
+    "icon": ""
   },
   "openWeatherMap": {
     "url": "https://openweathermap.org/guide",
@@ -26822,15 +26837,7 @@ module.exports={
     },
     "description": "OpenWeatherMap provides many kinds of weather maps including Precipitation, Clouds, Pressure, Temperature, Wind.",
     "layer_desc": "Weather information",
-    "icon": "#00a3fe",
-    "extents": {
-      "bounds": [
-                  [-44.087585028245165, -148.88671875000003],
-                  [76.63922560965888, 140.62500000000003]
-                ],
-      "minZoom": 3,
-      "maxZoom": 15
-    }
+    "icon": "#00a3fe"
   },
   "osmlandfills,quarries": {
     "url": "https://www.openstreetmap.org/about",
@@ -26842,10 +26849,6 @@ module.exports={
     "layer_desc": "Land used for landfill and mine quarry",
     "icon": "#008000",
     "extents": {
-      "bounds": [
-                  [-44.087585028245165, -148.88671875000003],
-                  [76.63922560965888, 140.62500000000003]
-                ],
       "minZoom": 11,
       "maxZoom": 15
     }
@@ -26878,15 +26881,7 @@ module.exports={
     },
     "description": "An air quality monitoring network built on a new generation of \"Internet of Things\" sensors",
     "layer_desc": "Air quality data from PurpleAir sensors",
-    "icon": "#7c22b5",
-    "extents": {
-      "bounds": [
-                  [-44.087585028245165, -148.88671875000003],
-                  [76.63922560965888, 140.62500000000003]
-                ],
-      "minZoom": 3,
-      "maxZoom": 15
-    }
+    "icon": "#7c22b5"
   },
   "skytruth": {
     "url": "https://alerts.skytruth.org/",
@@ -26898,10 +26893,6 @@ module.exports={
     "layer_desc": "Environmentally significant incidents",
     "icon": "#f00",
     "extents": {
-      "bounds": [
-                  [-44.087585028245165, -148.88671875000003],
-                  [76.63922560965888, 140.62500000000003]
-                ],
       "minZoom": 10,
       "maxZoom": 15
     }
@@ -29830,9 +29821,9 @@ L.Control.Embed = L.Control.extend({
 
   generateCode: function() {
     var currentHash = window.location.hash;
-    var path = window.location.pathname === '/example/embed.html' ? '/example/index.html' : window.location.pathname;
+    var path = window.location.pathname === '/leaflet-environmental-layers/example/embed.html' ? '/leaflet-environmental-layers/example/index.html' : window.location.pathname;
     var hostname = this.options.hostname;
-    var code = '<iframe style="border:none;" width="100%" height="900px" src="//' + hostname + '/leaflet-environmental-layers' + path + currentHash +'"></iframe>';
+    var code = '<iframe style="border:none;" width="100%" height="900px" src="//' + hostname + path + currentHash +'"></iframe>';
     return code;
   },
 
@@ -30448,12 +30439,13 @@ L.Control.LayersBrowser = L.Control.Layers.extend({
 
   _hideOutOfBounds: function(obj, elements) {
     var self = this;
+    var map = this._map;
     var data = this._getLayerData(obj);
     var layerName;
     if(obj.name && !obj.group) {
-      layerName = this.options.overlays[obj.name];
+      layerName = this.options.overlays && this.options.overlays[obj.name];
     } else {
-      layerName = this.options.overlays[obj.group].layers[obj.name];
+      layerName = this.options.overlays && this.options.overlays[obj.group].layers[obj.name];
     }
     this._hideElements(data, layerName, elements); // Filter layer list on initialization
     map.on('moveend', function() { // Update layer list on map movement
@@ -30462,19 +30454,22 @@ L.Control.LayersBrowser = L.Control.Layers.extend({
   },
 
   _hideElements: function(data, layerName, elements, removeLayer) {
+    var map = this._map;
     var removeFrmMap = removeLayer;
     var currentBounds = map.getBounds();
     var currentZoom = map.getZoom();
     var bounds;
+    var zoom;
     if(data) {
-      bounds = L.latLngBounds(data.extents.bounds);
+      bounds = data.extents && data.extents.bounds && L.latLngBounds(data.extents.bounds);
+      zoom =  data.extents && data.extents.minZoom && data.extents.minZoom;
       for(var i in elements) {
-        if((!bounds.intersects(currentBounds) && map.hasLayer(layerName) && removeFrmMap) ||
-          (currentZoom < data.extents.minZoom && map.hasLayer(layerName) && removeFrmMap)) {
+        if((bounds && !bounds.intersects(currentBounds) && map.hasLayer(layerName) && removeFrmMap) ||
+          ( zoom && (currentZoom < zoom) && map.hasLayer(layerName) && removeFrmMap)) {
           elements[i].style.display = 'none';
             // Remove layer from map if active
             map.removeLayer(layerName);
-        } else if(!bounds.intersects(currentBounds) || currentZoom < data.extents.minZoom) {
+        } else if((bounds && !bounds.intersects(currentBounds)) || (zoom && (currentZoom < zoom))) {
           elements[i].style.display = 'none';
         } else {
           elements[i].style.display = 'block';
