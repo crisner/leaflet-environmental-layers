@@ -1,3 +1,5 @@
+"use strict";
+
 L.Control.LayersBrowser = L.Control.Layers.extend({
   options: {
     collapsed: true,
@@ -6,11 +8,9 @@ L.Control.LayersBrowser = L.Control.Layers.extend({
     hideSingleBase: true,
     overlays: {}
   },
-
-  initialize: function(baseLayers, overlays, options) {
+  initialize: function initialize(baseLayers, overlays, options) {
     this.options.overlays = overlays;
     L.Util.setOptions(this, options);
-
     this._layerControlInputs = [];
     this._layers = [];
     this._lastZIndex = 0;
@@ -30,54 +30,45 @@ L.Control.LayersBrowser = L.Control.Layers.extend({
       }
     }
   },
-
-  expand: function() {
+  expand: function expand() {
     L.DomUtil.addClass(this._container, 'leaflet-control-layers-expanded');
     this._section.style.height = null;
     var acceptableHeight = this._map.getSize().y - (this._container.offsetTop + 50);
+
     if (acceptableHeight < this._section.clientHeight) {
       L.DomUtil.addClass(this._section, 'leaflet-control-layers-scrollbar');
       this._section.style.height = acceptableHeight + 'px';
     } else {
       L.DomUtil.removeClass(this._section, 'leaflet-control-layers-scrollbar');
     }
+
     this._checkDisabledLayers();
+
     return this;
   },
-
-  _initLayout: function() {
+  _initLayout: function _initLayout() {
     var className = 'leaflet-control-layers';
     var container = this._container = L.DomUtil.create('div', className);
-    var collapsed = this.options.collapsed;
+    var collapsed = this.options.collapsed; // makes this work on IE touch devices by stopping it from firing a mouseout event when the touch is released
 
-    // makes this work on IE touch devices by stopping it from firing a mouseout event when the touch is released
     container.setAttribute('aria-haspopup', true);
-
     L.DomEvent.disableClickPropagation(container);
     L.DomEvent.disableScrollPropagation(container);
-
-    var section = this._section = L.DomUtil.create('section', className + '-list' +
-    ' ' + className + '-menu');
-
+    var section = this._section = L.DomUtil.create('section', className + '-list' + ' ' + className + '-menu');
     var img = L.DomUtil.create('img', 'mx-auto d-block', section);
     img.src = 'https://static.thenounproject.com/png/257237-200.png';
     img.alt = 'industrial building icon by Parkjisun';
     img.style.maxHeight = '75px';
     img.style.maxWidth = '75px';
-
     var heading = L.DomUtil.create('h3', 'text-center', section);
     heading.innerHTML = 'Environmental data near here';
-
     var lead = L.DomUtil.create('p', 'text-center', section);
     lead.innerHTML = 'A range of groups publish environmental data near here. ';
-
     var readMoreLink = L.DomUtil.create('a', '', lead);
     readMoreLink.innerHTML = 'Read more';
     readMoreLink.href = '#';
-
     var or = L.DomUtil.create('span', '', lead);
     or.innerHTML = ' or ';
-
     var shareLink = L.DomUtil.create('a', '', lead);
     shareLink.innerHTML = 'share your own map data.';
     shareLink.href = '#';
@@ -88,7 +79,7 @@ L.Control.LayersBrowser = L.Control.Layers.extend({
       if (!L.Browser.android) {
         L.DomEvent.on(container, {
           mouseenter: this.expand,
-          mouseleave: this.collapse,
+          mouseleave: this.collapse
         }, this);
       }
     }
@@ -114,11 +105,9 @@ L.Control.LayersBrowser = L.Control.Layers.extend({
     this._overlaysList.style.maxHeight = '35vh';
     this._overlaysList.style.overflowY = 'scroll';
     this._overlaysList.style.overflowX = 'hidden';
-
     container.appendChild(section);
   },
-
-  _addLayer: function(layer, name, overlay, group) {
+  _addLayer: function _addLayer(layer, name, overlay, group) {
     if (this._map) {
       layer.on('add remove', this._onLayerChange, this);
     }
@@ -137,59 +126,62 @@ L.Control.LayersBrowser = L.Control.Layers.extend({
 
     this._expandIfNotCollapsed();
   },
-
-  _update: function() {
-    if (!this._container) { return this; }
+  _update: function _update() {
+    if (!this._container) {
+      return this;
+    }
 
     L.DomUtil.empty(this._baseLayersList);
     L.DomUtil.empty(this._overlaysList);
-
     this._layerControlInputs = [];
-    var baseLayersPresent; var overlaysPresent; var i; var obj; var baseLayersCount = 0;
-
+    var baseLayersPresent;
+    var overlaysPresent;
+    var i;
+    var obj;
+    var baseLayersCount = 0;
     var group;
-    
+
     for (i = 0; i < this._layers.length; i++) {
       var groupHolder;
       obj = this._layers[i];
-      if(group !== obj.group) {
-        this._createGroup(obj);
-        groupHolder = this._createGroupHolder(obj);
-      };
 
-      if(obj.group) {
+      if (group !== obj.group) {
+        this._createGroup(obj);
+
+        groupHolder = this._createGroupHolder(obj);
+      }
+
+      ;
+
+      if (obj.group) {
         groupHolder.appendChild(this._addItem(obj));
       } else {
         this._addItem(obj);
       }
-      
+
       group = obj.group;
       overlaysPresent = overlaysPresent || obj.overlay;
       baseLayersPresent = baseLayersPresent || !obj.overlay;
       baseLayersCount += !obj.overlay ? 1 : 0;
-    }
+    } // Hide base layers section if there's only one layer.
 
-    // Hide base layers section if there's only one layer.
+
     if (this.options.hideSingleBase) {
       baseLayersPresent = baseLayersPresent && baseLayersCount > 1;
       this._baseLayersList.style.display = baseLayersPresent ? '' : 'none';
     }
 
     this._separator.style.display = overlaysPresent && baseLayersPresent ? '' : 'none';
-
     return this;
   },
-
-  _createSeparator: function() {
+  _createSeparator: function _createSeparator() {
     var separator = document.createElement('div');
     separator.className = 'leaflet-control-layers-separator';
-
     return separator;
   },
-
-  _createLayerInfoElements: function(obj) {
+  _createLayerInfoElements: function _createLayerInfoElements(obj) {
     var data = this._getLayerData(obj);
-    
+
     var icon = document.createElement('div');
     icon.className = 'rounded-circle layer-icon';
     icon.style.width = '10px';
@@ -197,7 +189,6 @@ L.Control.LayersBrowser = L.Control.Layers.extend({
     icon.style.backgroundColor = data && data.icon || 'black';
     icon.style.display = 'inline-block';
     icon.style.margin = '0 1em';
-
     var reportBtn = document.createElement('a');
     reportBtn.setAttribute('role', 'button');
     reportBtn.setAttribute('href', '#');
@@ -208,35 +199,30 @@ L.Control.LayersBrowser = L.Control.Layers.extend({
     reportBtn.style.lineHeight = '10px';
     reportBtn.style.color = '#717171';
 
-    if(data && data.report_url) {
+    if (data && data.report_url) {
       reportBtn.setAttribute('href', data.report_url);
       reportBtn.classList.remove('invisible');
     }
 
-    reportBtn.addEventListener('mouseover', function() {
+    reportBtn.addEventListener('mouseover', function () {
       reportBtn.style.color = 'white';
     });
-
-    reportBtn.addEventListener('mouseout', function() {
+    reportBtn.addEventListener('mouseout', function () {
       reportBtn.style.color = '#717171';
     });
-
     var layerDesc = document.createElement('span');
     layerDesc.innerHTML = data && data.layer_desc;
     layerDesc.className = 'layer-description';
     layerDesc.style.fontSize = '1.2em';
-
     var dataInfo = document.createElement('div');
     dataInfo.style.display = 'inline-block';
     dataInfo.className = 'float-sm-right layer-data-info';
-
     dataInfo.style.transform = 'translateY(6px)';
-
     var dataType = document.createElement('span');
     dataType.innerHTML = 'NRT/RT';
     dataType.style.color = '#717171';
 
-    if(data && data.data.type !== 'NRT' && data.data.type !== 'RT') {
+    if (data && data.data.type !== 'NRT' && data.data.type !== 'RT') {
       dataType.classList.add('invisible');
     }
 
@@ -247,24 +233,20 @@ L.Control.LayersBrowser = L.Control.Layers.extend({
     infoIcon.className = 'fas fa-info-circle';
     infoIcon.style.fontSize = '1.2em';
     infoIcon.style.color = '#717171';
-
     var infoModal;
-    dataInfoBtn.addEventListener('click', function() {
+    dataInfoBtn.addEventListener('click', function () {
       // Add only one instance of the modal for the map layer
-      if(!infoModal || !infoModal.options.mapHasControl) {
-        infoModal = new L.control.info({ 
+      if (!infoModal || !infoModal.options.mapHasControl) {
+        infoModal = new L.control.info({
           text: data && data.data.disclaimer,
           classname: 'info-modal'
         });
-
         infoModal.addTo(map);
       }
     });
-
     dataInfo.appendChild(dataType);
     dataInfo.appendChild(dataInfoBtn);
     dataInfoBtn.appendChild(infoIcon);
-
     return {
       icon: icon,
       reportBtn: reportBtn,
@@ -273,18 +255,16 @@ L.Control.LayersBrowser = L.Control.Layers.extend({
       dataType: dataType,
       dataInfoBtn: dataInfoBtn,
       infoIcon: infoIcon
-    }
+    };
   },
-
-  _createGroup: function(obj) {
-    if(obj.group) {
+  _createGroup: function _createGroup(obj) {
+    if (obj.group) {
       var layerGroup = document.createElement('a');
       layerGroup.href = '#' + obj.group.replace(/\s/g, '');
       layerGroup.setAttribute('data-toggle', 'collapse');
       layerGroup.setAttribute('role', 'button');
       layerGroup.setAttribute('aria-expanded', 'false');
-      layerGroup.setAttribute('aria-controls', obj.group)
-
+      layerGroup.setAttribute('aria-controls', obj.group);
       var groupName = document.createElement('span');
       groupName.innerHTML = obj.group;
       groupName.className = 'layer-group-name';
@@ -293,14 +273,12 @@ L.Control.LayersBrowser = L.Control.Layers.extend({
       groupName.style.fontWeight = 'bold';
       groupName.style.display = 'inline-block';
       groupName.style.width = '12em';
-
       var chevron = document.createElement('i');
       chevron.className = 'fa fa-chevron-down';
       chevron.setAttribute('aria-hidden', 'true');
       chevron.style.margin = '1em';
-      
-      layerGroup.addEventListener('click', function() {
-        if(chevron.className === 'fa fa-chevron-down') {
+      layerGroup.addEventListener('click', function () {
+        if (chevron.className === 'fa fa-chevron-down') {
           chevron.className = 'fa fa-chevron-up';
         } else {
           chevron.className = 'fa fa-chevron-down';
@@ -322,34 +300,34 @@ L.Control.LayersBrowser = L.Control.Layers.extend({
       var separator = this._createSeparator();
 
       this._hideOutOfBounds(obj, [titleHolder, separator]);
-      
+
       var container = obj.overlay ? this._overlaysList : this._baseLayersList;
       container.appendChild(titleHolder);
       container.appendChild(separator);
       return titleHolder;
     }
   },
-
-  _createGroupHolder: function(obj) {
+  _createGroupHolder: function _createGroupHolder(obj) {
     var groupName;
-    if(obj.group) {
-      groupName =  obj.group.replace(/\s/g, '');
+
+    if (obj.group) {
+      groupName = obj.group.replace(/\s/g, '');
     }
+
     var groupHolder = document.createElement('div');
     groupHolder.className = 'layers-sub-list collapse';
     groupHolder.setAttribute('id', groupName);
-
     var container = obj.overlay ? this._overlaysList : this._baseLayersList;
     container.appendChild(groupHolder);
-    
     return groupHolder;
   },
-
-  _addItem: function(obj) {
+  _addItem: function _addItem(obj) {
     var labelContainer = document.createElement('div');
     var label = document.createElement('label');
     label.style.display = 'inline-block';
+
     var checked = this._map.hasLayer(obj.layer);
+
     var input;
 
     if (obj.overlay) {
@@ -363,28 +341,27 @@ L.Control.LayersBrowser = L.Control.Layers.extend({
     }
 
     this._layerControlInputs.push(input);
+
     input.layerId = L.Util.stamp(obj.layer);
-
     L.DomEvent.on(input, 'click', this._onInputClick, this);
-
     var name = document.createElement('span');
     name.innerHTML = ' ' + obj.name;
     name.style.fontWeight = 'bold';
     name.style.display = 'inline-block';
-    
     name.style.fontSize = '1.2em';
 
     var elements = this._createLayerInfoElements(obj);
-    var separator = this._createSeparator();
 
-    // Helps from preventing layer control flicker when checkboxes are disabled
+    var separator = this._createSeparator(); // Helps from preventing layer control flicker when checkboxes are disabled
     // https://github.com/Leaflet/Leaflet/issues/2771
-    var holder = document.createElement('div');
 
+
+    var holder = document.createElement('div');
     labelContainer.appendChild(label);
     label.appendChild(holder);
     holder.appendChild(input);
-    if(obj.overlay && !obj.group) {
+
+    if (obj.overlay && !obj.group) {
       holder.appendChild(elements.icon);
       holder.appendChild(elements.reportBtn);
       name.style.margin = '0 1em';
@@ -392,8 +369,10 @@ L.Control.LayersBrowser = L.Control.Layers.extend({
       name.className = 'layer-name';
       label.className = 'label';
     }
+
     holder.appendChild(name);
-    if(obj.overlay && obj.group) {
+
+    if (obj.overlay && obj.group) {
       label.style.width = '100%';
       label.style.marginBottom = '3px';
       input.style.marginLeft = '3.8em';
@@ -402,7 +381,8 @@ L.Control.LayersBrowser = L.Control.Layers.extend({
       name.className = 'layer-list-name';
       labelContainer.appendChild(separator);
     }
-    if(obj.overlay && !obj.group) {
+
+    if (obj.overlay && !obj.group) {
       labelContainer.appendChild(elements.layerDesc);
       labelContainer.className = 'clearfix layer-info-container';
       labelContainer.appendChild(elements.dataInfo);
@@ -410,67 +390,84 @@ L.Control.LayersBrowser = L.Control.Layers.extend({
     }
 
     this._hideOutOfBounds(obj, [labelContainer, separator]);
-    
+
     var container = obj.overlay ? this._overlaysList : this._baseLayersList;
     container.appendChild(labelContainer);
+
     this._checkDisabledLayers();
+
     return labelContainer;
   },
-
-  _hideOutOfBounds: function(obj, elements) {
+  _hideOutOfBounds: function _hideOutOfBounds(obj, elements) {
     var self = this;
     var map = this._map;
+
     var data = this._getLayerData(obj);
+
     var layerName;
-    if(obj.name && !obj.group) {
+
+    if (obj.name && !obj.group) {
       layerName = this.options.overlays && this.options.overlays[obj.name];
     } else {
       layerName = this.options.overlays && this.options.overlays[obj.group].layers[obj.name];
     }
+
     this._hideElements(data, layerName, elements); // Filter layer list on initialization
-    map.on('moveend', function() { // Update layer list on map movement
+
+
+    map.on('moveend', function () {
+      // Update layer list on map movement
       self._hideElements(data, layerName, elements, true);
     });
   },
-
-  _hideElements: function(data, layerName, elements, removeLayer) {
+  _hideElements: function _hideElements(data, layerName, elements, removeLayer) {
     var map = this._map;
     var removeFrmMap = removeLayer;
     var currentBounds = map.getBounds();
     var currentZoom = map.getZoom();
     var bounds;
     var zoom;
-    if(data) {
+
+    if (data) {
       bounds = data.extents && data.extents.bounds && L.latLngBounds(data.extents.bounds);
-      zoom =  data.extents && data.extents.minZoom && data.extents.minZoom;
-      for(var i in elements) {
-        if((bounds && !bounds.intersects(currentBounds) && map.hasLayer(layerName) && removeFrmMap) ||
-          ( zoom && (currentZoom < zoom) && map.hasLayer(layerName) && removeFrmMap)) {
-          elements[i].style.display = 'none';
-            // Remove layer from map if active
-            map.removeLayer(layerName);
-        } else if((bounds && !bounds.intersects(currentBounds)) || (zoom && (currentZoom < zoom))) {
+      zoom = data.extents && data.extents.minZoom && data.extents.minZoom;
+
+      for (var i in elements) {
+        if (bounds && !bounds.intersects(currentBounds) && map.hasLayer(layerName) && removeFrmMap || zoom && currentZoom < zoom && map.hasLayer(layerName) && removeFrmMap) {
+          elements[i].style.display = 'none'; // Remove layer from map if active
+
+          map.removeLayer(layerName);
+        } else if (bounds && !bounds.intersects(currentBounds) || zoom && currentZoom < zoom) {
           elements[i].style.display = 'none';
         } else {
           elements[i].style.display = 'block';
         }
-      };
-    };
-  },
+      }
 
-  _getLayerData: function(obj) {
+      ;
+    }
+
+    ;
+  },
+  _getLayerData: function _getLayerData(obj) {
     var layerData = require('../layerData.json');
+
     var data;
-    for (let j in layerData) {
-      if((obj.group && obj.group.replace(/\s/g, '').toLowerCase() === j.toLowerCase()) ||
-        (obj.name.replace(/\s/g, '').toLowerCase() === j.toLowerCase())) {
-          data = layerData[j];
-      };
-    };
+
+    for (var j in layerData) {
+      if (obj.group && obj.group.replace(/\s/g, '').toLowerCase() === j.toLowerCase() || obj.name.replace(/\s/g, '').toLowerCase() === j.toLowerCase()) {
+        data = layerData[j];
+      }
+
+      ;
+    }
+
+    ;
     return data;
   }
 });
 
-L.control.layersBrowser = function(baseLayers, overlays, options) {
+L.control.layersBrowser = function (baseLayers, overlays, options) {
   return new L.Control.LayersBrowser(baseLayers, overlays, options);
 };
+//# sourceMappingURL=layersBrowser_babel.js.map
