@@ -20607,7 +20607,6 @@ var GeoJSON = FeatureGroup.extend({
 			}
 			return this;
 		}
-		return new FeatureGroup(layers);
 
 		var options = this.options;
 
@@ -20654,7 +20653,7 @@ var GeoJSON = FeatureGroup.extend({
 			layer.setStyle(style);
 		}
 	}
-}
+});
 
 // @section
 // There are several static functions which can be called without instantiating L.GeoJSON:
