@@ -20607,6 +20607,7 @@ var GeoJSON = FeatureGroup.extend({
 			}
 			return this;
 		}
+		return new FeatureGroup(layers);
 
 		var options = this.options;
 
@@ -20653,7 +20654,7 @@ var GeoJSON = FeatureGroup.extend({
 			layer.setStyle(style);
 		}
 	}
-});
+}
 
 // @section
 // There are several static functions which can be called without instantiating L.GeoJSON:
@@ -25852,9 +25853,14 @@ L.LayerGroup.environmentalLayers = L.LayerGroup.extend(
 
   {
     options: {
+      simpleLayerControl: false,
       hash: false,
       embed: false, // activates layers on map by default if true.
       currentHash: location.hash,
+      addLayersToMap: false,
+      defaultBaseLayer: L.tileLayer('https://a.tiles.mapbox.com/v3/jywarren.map-lmrwb2em/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }),
       // Source of Truth of Layers name .
       // please put name of Layers carefully in the the appropriate layer group.
       layers0: ['purpleLayer', 'toxicReleaseLayer', 'pfasLayer', 'aqicnLayer', 'osmLandfillMineQuarryLayer', 'Unearthing'],
@@ -25891,6 +25897,9 @@ L.LayerGroup.environmentalLayers = L.LayerGroup.extend(
       if (!!param.baseLayers) {
         this.options.baseLayers = param.baseLayers;
       }
+      if (!!param.include) {
+        this.options.addLayersToMap = param.addLayersToMap === false ? false : true;
+      }
       param.all = [...this.options.layers0, ...this.options.layers1, ...this.options.layers2, ...this.options.layers3, ...this.options.layers4, ...this.options.layers5, ...this.options.layers6];
       if (!param.include || !param.include.length) {
         param.include = param.all;
@@ -25909,43 +25918,104 @@ L.LayerGroup.environmentalLayers = L.LayerGroup.extend(
       if (!!param.hostname) {
         this.options.hostname = param.hostname;
       }
+      if (!!param.simpleLayerControl) {
+        this.options.simpleLayerControl = param.simpleLayerControl;
+      }
     },
 
     onAdd: function(map) {
       this._map = map;
       this.overlayMaps = {};
-      var baseMaps = this.options.baseLayers;
+      this.groupedOverlayMaps = {}; // For grouping layers in the new menu
+      var baseMaps = this.options.baseLayers ? this.options.baseLayers : { "Grey-scale": this.options.defaultBaseLayer.addTo(map) };
 
       for (let layer of this.options.layers.include) {
         if (this.options.layers0.includes(layer)) {
           this.overlayMaps[layer] = window['L']['layerGroup'][layer]();
+          switch(layer) {
+            case 'purpleLayer':
+              if (!this.groupedOverlayMaps.PurpleAir) {
+                this.groupedOverlayMaps.PurpleAir = { category: 'group', layers: {} };
+                this.groupedOverlayMaps.PurpleAir.layers[layer] = this.overlayMaps[layer];
+              } else {
+                this.groupedOverlayMaps.PurpleAir.layers[layer] = this.overlayMaps[layer];
+              };
+              break;
+            case 'toxicReleaseLayer':
+              this.groupedOverlayMaps['Toxic Release'] = this.overlayMaps[layer];
+              break;
+            case 'aqicnLayer':
+              this.groupedOverlayMaps['Air Quality Index'] = this.overlayMaps[layer];
+              break;
+            case 'osmLandfillMineQuarryLayer':
+              this.groupedOverlayMaps['OSM landfills, quarries'] = this.overlayMaps[layer];
+              break;
+            default:
+              this.groupedOverlayMaps[layer] = this.overlayMaps[layer];  
+            this.groupedOverlayMaps[layer] = this.overlayMaps[layer];
+              this.groupedOverlayMaps[layer] = this.overlayMaps[layer];  
+          }
         }
         else if (this.options.layers1.includes(layer)) {
           this.overlayMaps[layer] = window['L']['layerGroup']['layerCode'](layer);
+          switch(layer) {
+            case 'purpleairmarker':
+              if (!this.groupedOverlayMaps.PurpleAir) {
+                this.groupedOverlayMaps.PurpleAir = { category: 'group', layers: {} };
+                this.groupedOverlayMaps.PurpleAir.layers[layer] = this.overlayMaps[layer];
+              } else {
+                this.groupedOverlayMaps.PurpleAir.layers[layer] = this.overlayMaps[layer];
+              }
+              break;
+            default:
+              this.groupedOverlayMaps[layer] = this.overlayMaps[layer];
+          }
         }
         else if (this.options.layers2.includes(layer)) {
+          if(!this.groupedOverlayMaps.OpenInfraMap) {
+            this.groupedOverlayMaps.OpenInfraMap = { category: 'group', layers: {} };
+          }
+          
           switch (layer) {
           case 'Power':
             this.overlayMaps[layer] = this.options.OpenInfraMap_Power;
+            this.groupedOverlayMaps.OpenInfraMap.layers[layer] = this.overlayMaps[layer];
             break;
           case 'Petroleum':
             this.overlayMaps[layer] = this.options.OpenInfraMap_Petroleum;
+            this.groupedOverlayMaps.OpenInfraMap.layers[layer] = this.overlayMaps[layer];
             break;
           case 'Telecom':
             this.overlayMaps[layer] = this.options.OpenInfraMap_Telecom;
+            this.groupedOverlayMaps.OpenInfraMap.layers[layer] = this.overlayMaps[layer];
             break;
           case 'Water':
             this.overlayMaps[layer] = this.options.OpenInfraMap_Water;
+            this.groupedOverlayMaps.OpenInfraMap.layers[layer] = this.overlayMaps[layer];
             break;
           }
         }
         else if (this.options.layers3.includes(layer)) {
           this.overlayMaps[layer] = window[layer + 'Layer'](map);
+          switch(layer) {
+            case 'wisconsin':
+              this.groupedOverlayMaps['Wisconsin Non-metal'] = this.overlayMaps[layer];
+              break;
+            default:
+              this.groupedOverlayMaps[layer] = this.overlayMaps[layer];
+          }
         }
         else if (this.options.layers4.includes(layer)) {
+          if(!this.groupedOverlayMaps.Justicemap) {
+            this.groupedOverlayMaps.Justicemap = { category: 'group', layers: {} };
+          }
           this.overlayMaps[layer] = window['L']['tileLayer']['provider']('JusticeMap.'+layer);
+          this.groupedOverlayMaps.Justicemap.layers[layer] = this.overlayMaps[layer];
         }
         else if (this.options.layers5.includes(layer)) {
+          if(!this.groupedOverlayMaps['Open Weather Map']) {
+            this.groupedOverlayMaps['Open Weather Map'] = { category: 'group', layers: {} };
+          }
           let obj = {};
           if (layer === 'clouds') {
             obj = {showLegend: true, opacity: 0.5};
@@ -25955,9 +26025,17 @@ L.LayerGroup.environmentalLayers = L.LayerGroup.extend(
             obj = {intervall: 15, minZoom: 3};
           }
           this.overlayMaps[layer] = window['L']['OWM'][layer](obj);
+          this.groupedOverlayMaps['Open Weather Map'].layers[layer] = this.overlayMaps[layer];
         }
         else if (this.options.layers6.includes(layer)) {
           this.overlayMaps[layer] = window['L']['geoJSON'][layer]();
+          switch(layer) {
+            case 'eonetFiresLayer':
+              this.groupedOverlayMaps['EONET Fires'] = this.overlayMaps[layer];
+              break;
+            default:
+              this.groupedOverlayMaps[layer] = this.overlayMaps[layer];
+          }
         }
         else {
           console.log('Incorrect Layer Name');
@@ -25972,7 +26050,9 @@ L.LayerGroup.environmentalLayers = L.LayerGroup.extend(
         ) : L.control.embed().addTo(map);
       }
 
-      L.control.layers(baseMaps, this.overlayMaps).addTo(map);
+      this.options.simpleLayerControl ? 
+      L.control.layers(baseMaps, this.overlayMaps).addTo(map) :
+      L.control.layersBrowser(baseMaps, this.groupedOverlayMaps).addTo(map);
 
       var allMaps = Object.assign(baseMaps, this.overlayMaps);
       if (this.options.hash) {
@@ -25980,6 +26060,14 @@ L.LayerGroup.environmentalLayers = L.LayerGroup.extend(
         // Update map state from hash
         hash.update(this.options.currentHash);
       }
+        
+      for (let layer of this.options.layers.include) {
+        if (!this.options.addLayersToMap) {
+          return;
+        }
+        map.addLayer(this.overlayMaps[layer]);
+      }
+      
     },
 
     onRemove: function(map) {},
@@ -26810,6 +26898,7 @@ module.exports={
   },
   "openInfraMap": {
     "url": "https://openinframap.org/about.html",
+    "contribute_url": "https://openinframap.org/about.html",
     "data": {
       "type": "",
       "disclaimer": "All the data currently displayed on OpenInfraMap is sourced directly from OpenStreetMap."
@@ -27062,7 +27151,7 @@ L.LayerGroup.LayerCode = L.LayerGroup.extend(
         }
 
 
-        if (typeof self._map.spin === 'function') {
+        if (self._map && typeof self._map.spin === 'function') {
           self._map.spin(true);
         }
         $.getJSON(Layer_URL, function(data) {
@@ -27072,7 +27161,7 @@ L.LayerGroup.LayerCode = L.LayerGroup.extend(
           { self.parseData(data.results); }
           else
           { self.parseData(data); }
-          if (typeof self._map.spin === 'function') {
+          if (self._map && typeof self._map.spin === 'function') {
             self._map.spin(false);
           }
         });
@@ -27330,7 +27419,7 @@ L.LayerGroup.LayerCode = L.LayerGroup.extend(
           for (i = 0; i < data.feed.length; i++) {
             this.addMarker(data.feed[i]);
           }
-          if (this.options.clearOutsideBounds) {
+          if (this.options.clearOutsideBounds && this._map) {
             this.clearOutsideBounds();
           }
         }
@@ -27340,7 +27429,7 @@ L.LayerGroup.LayerCode = L.LayerGroup.extend(
           for (i = 0; i < data.total_count; i++) {
             this.addMarker(data.results[i]);
           }
-          if (this.options.clearOutsideBounds) {
+          if (this.options.clearOutsideBounds && this._map) {
             this.clearOutsideBounds();
           }
         }
@@ -27349,7 +27438,7 @@ L.LayerGroup.LayerCode = L.LayerGroup.extend(
         for (i = 0; i < data.length; i++) {
           this.addMarker(data[i]);
         }
-        if (this.options.clearOutsideBounds) {
+        if (this.options.clearOutsideBounds && this._map) {
           this.clearOutsideBounds();
         }
       }
@@ -27365,7 +27454,7 @@ L.LayerGroup.LayerCode = L.LayerGroup.extend(
               this.addMarker1(data[i], i);
             }
           }
-          if (this.options.clearOutsideBounds) {
+          if (this.options.clearOutsideBounds && this._map) {
             this.clearOutsideBounds();
           }
         }
@@ -29728,7 +29817,7 @@ L.LayerGroup.unearthing = L.LayerGroup.extend(
     },
 
     onRemove: function(map) {
-      this._map.removeLayer(this.pointsLayer);
+      this._map.removeLayer(pointsLayer);
     },
   },
 );
@@ -30024,7 +30113,9 @@ L.Control.LayersBrowser = L.Control.Layers.extend({
     position: 'topright',
     autoZIndex: true,
     hideSingleBase: true,
-    overlays: {}
+    overlays: {},
+    existingLayers: {},
+    newLayers: []
   },
 
   initialize: function(baseLayers, overlays, options) {
@@ -30062,6 +30153,10 @@ L.Control.LayersBrowser = L.Control.Layers.extend({
       L.DomUtil.removeClass(this._section, 'leaflet-control-layers-scrollbar');
     }
     this._checkDisabledLayers();
+    this.options.newLayers = []; // Reset new layers list when the control is accessed
+    this._alertBadge.innerHTML = '';
+    this._alertBadge.style.display = 'none';
+    this._layersLink.style.marginLeft = '0';
     return this;
   },
 
@@ -30116,6 +30211,20 @@ L.Control.LayersBrowser = L.Control.Layers.extend({
     var link = this._layersLink = L.DomUtil.create('a', className + '-toggle', container);
     link.href = '#';
     link.title = 'Layers';
+    link.style.marginLeft = '0';
+
+    var alert = this._alertBadge = L.DomUtil.create('section', 'rounded-circle bg-danger text-white text-center'); // Badge to alert new layers within bounds
+    alert.style.display = 'none';
+    alert.style.position = 'relative';
+    alert.style.right = '55%';
+    alert.style.top = '25%';
+    alert.style.fontWeight = 'bold';
+    alert.style.width = '23px';
+    alert.style.height = '23px';
+    alert.style.justifyContent = 'center';
+    alert.style.alignItems = 'center';
+    alert.innerHTML = '';
+    link.appendChild(alert);
 
     if (L.Browser.touch) {
       L.DomEvent.on(link, 'click', L.DomEvent.stop);
@@ -30167,17 +30276,18 @@ L.Control.LayersBrowser = L.Control.Layers.extend({
     this._layerControlInputs = [];
     var baseLayersPresent; var overlaysPresent; var i; var obj; var baseLayersCount = 0;
 
+    var map = this._map;
     var group;
     
     for (i = 0; i < this._layers.length; i++) {
       var groupHolder;
       obj = this._layers[i];
-      if(group !== obj.group) {
+      if(obj.group && group !== obj.group) {
         this._createGroup(obj);
         groupHolder = this._createGroupHolder(obj);
       };
 
-      if(obj.group) {
+      if(groupHolder && obj.group) {
         groupHolder.appendChild(this._addItem(obj));
       } else {
         this._addItem(obj);
@@ -30188,6 +30298,18 @@ L.Control.LayersBrowser = L.Control.Layers.extend({
       baseLayersPresent = baseLayersPresent || !obj.overlay;
       baseLayersCount += !obj.overlay ? 1 : 0;
     }
+
+    map.on('moveend', function() {
+      if(this.options.newLayers.length > 0) {
+        this._layersLink.style.marginLeft = '2.9em';
+        this._alertBadge.style.display = 'flex';
+        this._alertBadge.innerHTML = this.options.newLayers.length;
+      } else {
+        this._layersLink.style.marginLeft = '0';
+        this._alertBadge.style.display = 'none';
+        this._alertBadge.innerHTML = '';
+      }
+    }, this);
 
     // Hide base layers section if there's only one layer.
     if (this.options.hideSingleBase) {
@@ -30227,9 +30349,14 @@ L.Control.LayersBrowser = L.Control.Layers.extend({
     reportBtn.style.margin = '0 1em';
     reportBtn.style.lineHeight = '10px';
     reportBtn.style.color = '#717171';
+    reportBtn.style.minWidth = '95px';
 
     if(data && data.report_url) {
       reportBtn.setAttribute('href', data.report_url);
+      reportBtn.classList.remove('invisible');
+    } else if(data && data.contribute_url) {
+      reportBtn.setAttribute('href', data.contribute_url);
+      reportBtn.innerHTML = 'Contribute';
       reportBtn.classList.remove('invisible');
     }
 
@@ -30447,13 +30574,13 @@ L.Control.LayersBrowser = L.Control.Layers.extend({
     } else {
       layerName = this.options.overlays && this.options.overlays[obj.group].layers[obj.name];
     }
-    this._hideElements(data, layerName, elements); // Filter layer list on initialization
+    this._hideElements(obj, data, layerName, elements); // Filter layer list on initialization
     map.on('moveend', function() { // Update layer list on map movement
-      self._hideElements(data, layerName, elements, true);
+      self._hideElements(obj, data, layerName, elements, true);
     });
   },
 
-  _hideElements: function(data, layerName, elements, removeLayer) {
+  _hideElements: function(obj, data, layerName, elements, removeLayer) {
     var map = this._map;
     var removeFrmMap = removeLayer;
     var currentBounds = map.getBounds();
@@ -30471,11 +30598,28 @@ L.Control.LayersBrowser = L.Control.Layers.extend({
             map.removeLayer(layerName);
         } else if((bounds && !bounds.intersects(currentBounds)) || (zoom && (currentZoom < zoom))) {
           elements[i].style.display = 'none';
+          this._existingLayers(obj, false, removeFrmMap);
         } else {
           elements[i].style.display = 'block';
+          this._existingLayers(obj, true, removeFrmMap);
         }
       };
     };
+  },
+
+  _existingLayers: function(obj, doesExist, isInitialized) { 
+    if(doesExist && isInitialized && !this.options.existingLayers[obj.name]) { // Check if there is a new layer in current bounds
+      this.options.newLayers = [...this.options.newLayers, obj.name];
+      this.options.existingLayers[obj.name] = true;
+    } else if(doesExist) {
+      this.options.existingLayers[obj.name] = true; // layer exists upon inititalization
+    } else if(isInitialized && this.options.existingLayers[obj.name]) { // Remove from new layers if the layer no longer exists within current bounds
+      this.options.newLayers = this.options.newLayers.filter(layer => layer !== obj.name);
+      this.options.existingLayers[obj.name] = false;
+    } else {
+      this.options.existingLayers[obj.name] = false; // layer does not exist upon inititalization
+    }
+
   },
 
   _getLayerData: function(obj) {

@@ -80,12 +80,13 @@ https://publiclab.org/notes/sagarpreet/06-06-2018/leaflet-environmental-layer-li
 1. Install grunt - https://gruntjs.com/installing-grunt.
 2. Make the changes you are working on in respective /src files.
 3. Run `grunt build` to generate files in the /dist directory.
-4. Run `grunt jasmine` to run tests on the LEL layers and ensure they pass.
-5. Test your changes on a browser by opening `examples/index.html`.
+4. Run `grunt transpile` to transpile es6 code and copy files needed to run the tests to the /dist directory.
+5. Run `grunt jasmine` to run tests on the LEL layers and ensure they pass.
+6. Test your changes on a browser by opening `examples/index.html`.
 
 ## Demo :
 
-Checkout this demo : https://publiclab.github.io/leaflet-environmental-layers/example/index.html#3/43.00/-46.23
+Checkout this demo : https://publiclab.github.io/leaflet-environmental-layers/example/index.html#lat=43.00&lon=-4.07&zoom=3&layers=Standard
 
 ## Features :
 
@@ -108,6 +109,58 @@ Click on a point or marker on the map to learn more about it .
 #### Add a legend
 
 In `src/legendCreation.js`, add `addLayerNameURLPair(layer_var, "img_url");`, where `layer_var` is consistent with the variable used in `example/index.html` and `img_url` is the source of the image to be used as the legend.
+
+#### Add the layers browser menu from the demo page
+To add the layers browser menu from the demo page,
+
+Dependencies:
+```
+  <!-- Bootstrap --> 
+  <link rel="stylesheet" href="../node_modules\bootstrap\dist\css\bootstrap.min.css">
+  <script src="../node_modules\jquery\dist\jquery.slim.min.js"></script>
+  <script src="../node_modules\bootstrap\dist\js\bootstrap.min.js"></script>
+```
+
+```js
+  var baseMaps = {
+  'Standard': baselayer1,
+  };
+
+  var overlayMaps = {
+  'Wisconsin Non-Metal': Wisconsin_NM,
+  'Indigenous Lands': {
+    category: 'group', // Let's the control know if this should be rendered as a group
+    layers: { // Layers making the group
+      'Territories': IndigenousLandsTerritories,
+      'Languages': IndigenousLandsLanguages,
+      'Treaties': IndigenousLandsTreaties,
+    },
+  },
+};
+
+  var leafletControl = new L.control.layersBrowser(baseMaps, overlayMaps);
+  leafletControl.addTo(map);
+```
+- `baseMaps` and `overlayMaps` are object literals that have layer names for keys and map layer objects for values.
+- `baseMaps` will be hidden if only one base map is provided
+- The layer information displayed for each layer is stored in `layerData.json`
+- The layer name(key) in the `overlayMaps` object is not case-sensitive and can have spaces but the characters should match with those in `layerData.json`
+- The layers are filtered according to the map view
+- When there are new layers present in the map view when moving around a badge is displayed near the layer control icon on the top right showing the number of new layers in the view
+
+### Add an embed control for embedding the map in other pages :
+
+Add the following code after you have the map(an instance of L.Map) initialized:
+
+    // Assuming your map instance is in a variable called map
+    var embedControl = new L.control.embed(options);
+    embedControl.addTo(map);
+
+The optional options object can be passed in with any of the following properties:
+- position<String>
+  The position defaults to 'topleft'.  Other possible values include 'topright', 'bottomleft' or 'bottomright'
+- hostname<String>
+  Defaults to 'publiclab.github.io'
 
 ### Spreadsheet-based layers
 
@@ -149,11 +202,6 @@ We're going to try spinning this out into its own library; see: https://github.c
 	   <script src="../node_modules/leaflet-spin/example/spin/dist/spin.min.js"></script>  <!-- Compulsory to add -->
  	   <script src="../node_modules/leaflet-spin/example/leaflet.spin.min.js"></script>
 
-### To use Wind Rose Layer :
-
-            <script src="../src/windRoseLayer.js"></script>
-            <link href="../dist/LeafletEnvironmentalLayers.css" rel="stylesheet">
-
 ### To use Wisconsin Non-Metallic Layer :
 
             <script src="https://unpkg.com/esri-leaflet@2.2.3/dist/esri-leaflet.js"></script>
@@ -162,10 +210,7 @@ We're going to try spinning this out into its own library; see: https://github.c
               var Wisconsin_NM = wisconsinLayer(map) ;
 
 ### To use Fractracker Mobile Layer :
-
-* Same dependencies as of wisconsin Non-Metallic Layer .
-
-              var FracTracker_mobile = fracTrackerMobileLayer(map) ;
+            var FracTracker_mobile = L.geoJSON.fracTrackerMobile();
 
 
 ### To use Purple Layer :
@@ -181,8 +226,11 @@ We're going to try spinning this out into its own library; see: https://github.c
         var city = L.OWM.current({intervall: 15, minZoom: 3});
 
 2.) WindRose (by openWeather)
+      
+      <script src="../src/windRoseLayer.js"></script>
+       <link href="../dist/LeafletEnvironmentalLayers.css" rel="stylesheet">
 
-        var windrose = L.OWM.current({intervall: 15, minZoom: 3, markerFunction: myWindroseMarker, popup: false, clusterSize:       50,imageLoadingBgUrl: 'https://openweathermap.org/img/w0/iwind.png' });
+     var windrose = L.OWM.current({intervall: 15, minZoom: 3, markerFunction: myWindroseMarker, popup: false, clusterSize:       50,imageLoadingBgUrl: 'https://openweathermap.org/img/w0/iwind.png' });
     windrose.on('owmlayeradd', windroseAdded, windrose);
 
 ## Open Infra Map :
@@ -230,7 +278,6 @@ We're going to try spinning this out into its own library; see: https://github.c
     var hash = new L.FullHash(map, allMapLayers);    
 
 
-
  ## Add all LEL Layers at once:
 
  	 L.LayerGroup.EnvironmentalLayers().addTo(map);
@@ -247,6 +294,23 @@ We're going to try spinning this out into its own library; see: https://github.c
             include: ['mapknitter', 'clouds'],
          }).addTo(map);
 
+  The layers added to the 'include' option are displayed by default when the map is initialized
+
+## Add some layers without displaying them default:
+
+	 L.LayerGroup.EnvironmentalLayers({
+            addLayersToMap: false,    // Prevents displaying layers by default
+            include: ['mapknitter', 'clouds'],
+         }).addTo(map);
+
+## Add base layers:
+
+    L.LayerGroup.EnvironmentalLayers({
+            baseLayers: {               // Grayscale base map is used by default when this is undefined 
+             'Standard': baselayer1
+            },
+          }).addTo(map);
+
 ## Turn on Leaflet Hash in the URL:
 
 	 L.LayerGroup.EnvironmentalLayers({
@@ -254,16 +318,31 @@ We're going to try spinning this out into its own library; see: https://github.c
 	    hash: true,             // by default this is FALSE
          }).addTo(map);
 
-## Add an embed control for embedding the map in other pages :
+## Turn on embed control:
 
-Add the following code after you have the map(an instance of L.Map) initialized:
+    L.LayerGroup.EnvironmentalLayers({
+          exclude: ['mapknitter', 'clouds'],
+          hash: true,                   // by default this is FALSE
+          embed: true,                  // by default this is FALSE
+          hostname: 'placeholder.org'   // by default this is set to 'publiclab.github.io'
+    }).addTo(map);
 
-    // Assuming your map instance is in a variable called map
-    var embedControl = new L.control.embed(options);
-    embedControl.addTo(map);
+  By adding a hostname, the embed code can point to the domain that hosts the maps.
 
-The optional options object can be passed in with any of the following properties:
-- position<String>
-  The position defaults to 'topleft'.  Other possible values include 'topright', 'bottomleft' or 'bottomright'
-- hostname<String>
-  Defaults to 'publiclab.github.io'
+
+## Browse layers
+
+  The layer menu used by default groups similar layers, displays more information about the layers and filters them when out of bounds.
+
+  ### Dependencies
+      
+        <link rel="stylesheet" href="../node_modules\bootstrap\dist\css\bootstrap.min.css">
+        <script src="../node_modules\jquery\dist\jquery.slim.min.js"></script>
+        <script src="../node_modules\bootstrap\dist\js\bootstrap.min.js"></script>
+        <link href="../dist/LeafletEnvironmentalLayers.css" rel="stylesheet" />
+    
+  ### To use Leaflet's default layer control:
+
+    L.LayerGroup.EnvironmentalLayers({
+            simpleLayerControl: true,   // by default this is FALSE
+      }).addTo(map);
