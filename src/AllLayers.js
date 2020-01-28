@@ -47,7 +47,7 @@ L.LayerGroup.environmentalLayers = L.LayerGroup.extend(
         this.options.baseLayers = param.baseLayers;
       }
       if (!!param.include) {
-        this.options.addLayersToMap = param.addLayersToMap === false ? false : true;
+        this.options.addLayersToMap = param.addLayersToMap;
       }
       param.all = [...this.options.layers0, ...this.options.layers1, ...this.options.layers2, ...this.options.layers3, ...this.options.layers4, ...this.options.layers5, ...this.options.layers6];
       if (!param.include || !param.include.length) {
@@ -191,6 +191,13 @@ L.LayerGroup.environmentalLayers = L.LayerGroup.extend(
         }
       }
 
+      var leafletControl = this.options.simpleLayerControl ? 
+      L.control.layers(baseMaps, this.overlayMaps).addTo(map) :
+      L.control.layersBrowser(baseMaps, this.groupedOverlayMaps).addTo(map);
+
+      var modeControl = new L.control.minimalMode(leafletControl);
+      modeControl.addTo(map);
+
       if (this.options.embed) {
         this.options.hostname ? (
           L.control.embed({
@@ -198,10 +205,6 @@ L.LayerGroup.environmentalLayers = L.LayerGroup.extend(
           }).addTo(map)
         ) : L.control.embed().addTo(map);
       }
-
-      this.options.simpleLayerControl ? 
-      L.control.layers(baseMaps, this.overlayMaps).addTo(map) :
-      L.control.layersBrowser(baseMaps, this.groupedOverlayMaps).addTo(map);
 
       var allMaps = Object.assign(baseMaps, this.overlayMaps);
       if (this.options.hash) {

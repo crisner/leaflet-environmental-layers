@@ -114,6 +114,8 @@ In `src/legendCreation.js`, add `addLayerNameURLPair(layer_var, "img_url");`, wh
 To add the layers browser menu from the demo page,
 
 Dependencies:
+- Requires Bootstrap and jquery to be installed
+
 ```
   <!-- Bootstrap --> 
   <link rel="stylesheet" href="../node_modules\bootstrap\dist\css\bootstrap.min.css">
@@ -148,6 +150,12 @@ Dependencies:
 - The layers are filtered according to the map view
 - When there are new layers present in the map view when moving around a badge is displayed near the layer control icon on the top right showing the number of new layers in the view
 
+#### Dependencies for search control
+
+    <script src="../node_modules/leaflet-google-places-autocomplete/src/js/leaflet-gplaces-autocomplete.js"></script>
+    <link rel="stylesheet" href="../node_modules/leaflet-google-places-autocomplete/src/css/leaflet-gplaces-autocomplete.css">
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
+  
 ### Add an embed control for embedding the map in other pages :
 
 Add the following code after you have the map(an instance of L.Map) initialized:
@@ -161,6 +169,13 @@ The optional options object can be passed in with any of the following propertie
   The position defaults to 'topleft'.  Other possible values include 'topright', 'bottomleft' or 'bottomright'
 - hostname<String>
   Defaults to 'publiclab.github.io'
+
+### Add minimal mode control
+
+    // Assuming your map instance is in a variable called map
+    // Assuming your leaflet layers control instance is in a variable called layersControl
+    var modeControl = new L.control.minimalMode(layersControl);
+    modeControl.addTo(map);
 
 ### Spreadsheet-based layers
 
@@ -296,10 +311,10 @@ We're going to try spinning this out into its own library; see: https://github.c
 
   The layers added to the 'include' option are displayed by default when the map is initialized
 
-## Add some layers without displaying them default:
+## Add some layers and display them default:
 
 	 L.LayerGroup.EnvironmentalLayers({
-            addLayersToMap: false,    // Prevents displaying layers by default
+            addLayersToMap: true,    // by default this is FALSE
             include: ['mapknitter', 'clouds'],
          }).addTo(map);
 
