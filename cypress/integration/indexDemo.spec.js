@@ -1,7 +1,7 @@
 describe('Loads demo page', function() {
   it('Visits demo page', function() {
         cy.openWindow('/example/index.html#lat=43.00&lon=-83.00&zoom=3&layers=Standard');
-        cy.wait(1000)
+        cy.wait(500)
   })
 
   it('has search control', function() {
