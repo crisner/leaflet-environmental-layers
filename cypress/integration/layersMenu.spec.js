@@ -37,7 +37,7 @@ describe('Layers menu filters and displays layers on map', function() {
 
   it('removes layers from the menu on map movement', function() {
     cy.window().its('map').invoke('setView',[43.00, -83.00], 3)
-    cy.wait(400)
+    cy.wait(300)
     cy.get('.leaflet-control-layers').trigger('mouseover')
     cy.get('.layer-info-container').should('have.css', 'display', 'block').then((layers) => {
       const layersArray = Array.prototype.slice.call(layers)
