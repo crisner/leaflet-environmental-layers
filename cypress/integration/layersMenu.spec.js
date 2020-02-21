@@ -1,18 +1,19 @@
 describe('Layers menu filters and displays layers on map', function() {
   it('filters layers at map initialization', function() {
     cy.openWindow('/example/index.html#lat=43.00&lon=-83.00&zoom=3&layers=Standard')
-    cy.wait(110)
-    cy.get('.leaflet-control-layers').trigger('mouseover')
-    cy.get('.layer-info-container').should('have.css', 'display', 'block').then((layers) => {
-      const layersArray = Array.prototype.slice.call(layers)
-      expect(layersArray.filter(layer => layer.style.display === 'block').length).to.equal(9)
+    cy.wait(100)
+    cy.get('.leaflet-control-layers').trigger('mouseover').then(() => {
+      cy.get('.layer-info-container').should('have.css', 'display', 'block').then((layers) => {
+        const layersArray = Array.prototype.slice.call(layers)
+        expect(layersArray.filter(layer => layer.style.display === 'block').length).to.equal(9)
+      })
     })
     cy.get('.leaflet-control-layers').trigger('mouseout')
   })
 
   it('adds an alert displaying the number of new layers on map movement', function() {
-    cy.window().its('map').invoke('setView',[38.565, -110.767], 5)
-    cy.wait(110)
+    cy.window().its('map').invoke('setView',[38.565, -140.767], 5)
+    cy.wait(100)
     cy.get('.leaflet-control-layers-toggle .rounded-circle')
       .should('have.css', 'display', 'flex')
       .invoke('text').should('eq', '13')
@@ -35,11 +36,12 @@ describe('Layers menu filters and displays layers on map', function() {
 
   it('removes layers from the menu on map movement', function() {
     cy.window().its('map').invoke('setView',[43.00, -83.00], 3)
-    cy.wait(110)
-    cy.get('.leaflet-control-layers').trigger('mouseover')
-    cy.get('.layer-info-container').should('have.css', 'display', 'block').then((layers) => {
-      const layersArray = Array.prototype.slice.call(layers)
-      expect(layersArray.filter(layer => layer.style.display === 'block').length).to.equal(9)
+    cy.wait(100)
+    cy.get('.leaflet-control-layers').trigger('mouseover').then(() => {
+      cy.get('.layer-info-container').should('have.css', 'display', 'block').then((layers) => {
+        const layersArray = Array.prototype.slice.call(layers)
+        expect(layersArray.filter(layer => layer.style.display === 'block').length).to.equal(9)
+      })
     })
   })
 })
