@@ -14,7 +14,7 @@ describe('Layers menu filters and displays layers on map', function() {
 
   it('adds an alert displaying the number of new layers on map movement', function() {
     cy.window().its('map').invoke('setView',[38.565, -140.767], 5)
-    cy.wait(100)
+    cy.wait(200)
     cy.get('.leaflet-control-layers-toggle .rounded-circle')
       .should('have.css', 'display', 'flex')
       .invoke('text').should('eq', '13')
