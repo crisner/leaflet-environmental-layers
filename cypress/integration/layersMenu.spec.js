@@ -1,13 +1,14 @@
 describe('Layers menu filters and displays layers on map', function() {
   it('filters layers at map initialization', function() {
     cy.openWindow('/example/index.html#lat=43.00&lon=-83.00&zoom=3&layers=Standard')
-    cy.wait(100)
-    cy.get('.leaflet-control-layers').trigger('mouseover').then(() => {
-      cy.get('.layer-info-container').should('have.css', 'display', 'block').then((layers) => {
-        const layersArray = Array.prototype.slice.call(layers)
-        expect(layersArray.filter(layer => layer.style.display === 'block').length).to.equal(9)
-      })
+    cy.wait(130)
+    cy.get('.leaflet-control-layers').trigger('mouseover')
+    cy.get('.layer-info-container').should('have.css', 'display', 'block').then((layers) => {
+      const layersArray = Array.prototype.slice.call(layers)
+      expect(layersArray.filter(layer => layer.style.display === 'block').length).to.equal(9)
     })
+   
+    
     cy.get('.leaflet-control-layers').trigger('mouseout')
   })
 
@@ -36,12 +37,11 @@ describe('Layers menu filters and displays layers on map', function() {
 
   it('removes layers from the menu on map movement', function() {
     cy.window().its('map').invoke('setView',[43.00, -83.00], 3)
-    cy.wait(100)
-    cy.get('.leaflet-control-layers').trigger('mouseover').then(() => {
-      cy.get('.layer-info-container').should('have.css', 'display', 'block').then((layers) => {
-        const layersArray = Array.prototype.slice.call(layers)
-        expect(layersArray.filter(layer => layer.style.display === 'block').length).to.equal(9)
-      })
+    cy.wait(130)
+    cy.get('.leaflet-control-layers').trigger('mouseover')
+    cy.get('.layer-info-container').should('have.css', 'display', 'block').then((layers) => {
+      const layersArray = Array.prototype.slice.call(layers)
+      expect(layersArray.filter(layer => layer.style.display === 'block').length).to.equal(9)
     })
   })
 })
